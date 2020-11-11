@@ -1,21 +1,20 @@
 {
-  "name": "erwinnurhaq.github.io",
+  "name": "shell_digitise",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "4.2.4",
-    "@testing-library/react": "9.5.0",
-    "@testing-library/user-event": "7.2.1",
-    "cross-env": "7.0.2",
+    "d3": "6.2.0",
+    "prop-types": "15.7.2",
+    "prospace-ui": "0.1.11-alpha",
     "react": "16.13.1",
     "react-dom": "16.13.1",
-    "react-scripts": "3.4.1"
+    "react-scripts": "4.0.0",
+    "react-svg-pan-zoom": "3.8.1",
+    "timeago.js": "4.0.2"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "cross-env INLINE_RUNTIME_CHUNK=false GENERATE_SOURCEMAP=false react-scripts build",
-    "test": "react-scripts test --verbose",
-    "test-coverage": "react-scripts test --coverage --watchAll=false",
+    "build": "react-scripts build",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
