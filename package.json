@@ -9,7 +9,7 @@
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-scripts": "4.0.0",
-    "react-svg-pan-zoom": "3.8.1",
+    "react-svg-pan-zoom": "3.8.0",
     "timeago.js": "4.0.2"
   },
   "scripts": {

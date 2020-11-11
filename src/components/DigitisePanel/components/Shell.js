@@ -11,6 +11,7 @@ function Shell({
 	floorplanHeight,
 	willAddShell,
 	showEdgePoints,
+	onSetCornerPoint,
 	onSetEdgePoint,
 }) {
 	// Assumption that floorplan ratio is plotted on autocad based on A3 paper Size
@@ -28,98 +29,143 @@ function Shell({
 		e.target.setAttribute('fill', fill);
 	}
 
+	function onRectHover(e) {
+		const fill = e.type === 'mouseenter' ? '#ffbf104d' : '#ffbf1000';
+		e.target.setAttribute('fill', fill);
+	}
+
+	const shellWidth = (coverageArea.length * resPixelPerCM) / (floorplanRatio / 100);
+	const shellHeight = (coverageArea.width * resPixelPerCM) / (floorplanRatio / 100);
+	const cornerTopLeft = {
+		x: coordinates[0] * floorplanWidth,
+		y: coordinates[1] * floorplanHeight,
+	};
+	const cornerTopRight = {
+		x: cornerTopLeft.x + shellWidth,
+		y: cornerTopLeft.y,
+	};
+	const cornerBottomLeft = {
+		x: cornerTopLeft.x,
+		y: cornerTopLeft.y + shellHeight,
+	};
+	const cornerBottomRight = {
+		x: cornerTopLeft.x + shellWidth,
+		y: cornerTopLeft.y + shellHeight,
+	};
+	const rotation = `${coordinates[2]} ${cornerTopLeft.x} ${cornerTopLeft.y}`;
+
 	return (
 		<>
 			<rect
 				id={`shell_rect_${id}`}
-				x={`${coordinates[0] * floorplanWidth}`}
-				y={`${coordinates[1] * floorplanHeight}`}
-				transform={`
-					rotate(${coordinates[2]} ${coordinates[0] * floorplanWidth} ${
-					coordinates[1] * floorplanHeight
-				})`}
-				width={`${
-					(coverageArea.length * resPixelPerCM) / (floorplanRatio / 100)
-				}px`}
-				height={`${
-					(coverageArea.width * resPixelPerCM) / (floorplanRatio / 100)
-				}px`}
+				x={cornerTopLeft.x}
+				y={cornerTopLeft.y}
+				transform={`rotate(${rotation})`}
+				width={`${shellWidth}px`}
+				height={`${shellHeight}px`}
 				fill={willAddShell ? '#ffbf100d' : '#0000ff0d'}
 				stroke={willAddShell ? '#ffc110' : 'blue'}
 				strokeWidth={`${4 * (resPixelPerCM / 100)}px`}
-				onDrag={(e) => console.log(e)}
 			/>
 			{showEdgePoints && (
 				<>
-					<circle
-						id={`shell_circle-1_${id}`}
-						cx={`${coordinates[0] * floorplanWidth}`}
-						cy={`${coordinates[1] * floorplanHeight}`}
-						r={`${10 * (resPixelPerCM / 100)}`}
-						transform={`
-						rotate(${coordinates[2]} ${coordinates[0] * floorplanWidth} ${
-							coordinates[1] * floorplanHeight
-						})`}
+					<rect
+						id={`shell_rect-1_${id}`}
+						x={cornerTopLeft.x}
+						y={cornerTopLeft.y - shellHeight}
+						transform={`rotate(${rotation})`}
+						width={`${shellWidth}px`}
+						height={`${shellHeight}px`}
 						fill="#ffbf1000"
 						style={{ transition: '0.2s ease' }}
 						onMouseDown={(e) => onSetEdgePoint(e.currentTarget)}
+						onMouseEnter={onRectHover}
+						onMouseLeave={onRectHover}
+					/>
+					<rect
+						id={`shell_rect-2_${id}`}
+						x={cornerTopRight.x}
+						y={cornerTopRight.y}
+						transform={`rotate(${rotation})`}
+						width={`${shellWidth}px`}
+						height={`${shellHeight}px`}
+						fill="#ffbf1000"
+						style={{ transition: '0.2s ease' }}
+						onMouseDown={(e) => onSetEdgePoint(e.currentTarget)}
+						onMouseEnter={onRectHover}
+						onMouseLeave={onRectHover}
+					/>
+					<rect
+						id={`shell_rect-3_${id}`}
+						x={cornerBottomLeft.x}
+						y={cornerBottomLeft.y}
+						transform={`rotate(${rotation})`}
+						width={`${shellWidth}px`}
+						height={`${shellHeight}px`}
+						fill="#ffbf1000"
+						style={{ transition: '0.2s ease' }}
+						onMouseDown={(e) => onSetEdgePoint(e.currentTarget)}
+						onMouseEnter={onRectHover}
+						onMouseLeave={onRectHover}
+					/>
+					<rect
+						id={`shell_rect-4_${id}`}
+						x={cornerTopLeft.x - shellWidth}
+						y={cornerTopLeft.y}
+						transform={`rotate(${rotation})`}
+						width={`${shellWidth}px`}
+						height={`${shellHeight}px`}
+						fill="#ffbf1000"
+						style={{ transition: '0.2s ease' }}
+						onMouseDown={(e) => onSetEdgePoint(e.currentTarget)}
+						onMouseEnter={onRectHover}
+						onMouseLeave={onRectHover}
+					/>
+					<circle
+						id={`shell_circle-1_${id}`}
+						cx={cornerTopLeft.x}
+						cy={cornerTopLeft.y}
+						r={`${10 * (resPixelPerCM / 100)}`}
+						transform={`rotate(${rotation})`}
+						fill="#ffbf1000"
+						style={{ transition: '0.2s ease' }}
+						onMouseDown={(e) => onSetCornerPoint(e.currentTarget)}
 						onMouseEnter={onCircleHover}
 						onMouseLeave={onCircleHover}
 					/>
 					<circle
 						id={`shell_circle-2_${id}`}
-						cx={`${
-							coordinates[0] * floorplanWidth +
-							(coverageArea.length * resPixelPerCM) / (floorplanRatio / 100)
-						}`}
-						cy={`${coordinates[1] * floorplanHeight}`}
+						cx={cornerTopRight.x}
+						cy={cornerTopRight.y}
 						r={`${10 * (resPixelPerCM / 100)}`}
-						transform={`
-						rotate(${coordinates[2]} ${coordinates[0] * floorplanWidth} ${
-							coordinates[1] * floorplanHeight
-						})`}
+						transform={`rotate(${rotation})`}
 						fill="#ffbf1000"
 						style={{ transition: '0.2s ease' }}
-						onMouseDown={(e) => onSetEdgePoint(e.currentTarget)}
+						onMouseDown={(e) => onSetCornerPoint(e.currentTarget)}
 						onMouseEnter={onCircleHover}
 						onMouseLeave={onCircleHover}
 					/>
 					<circle
 						id={`shell_circle-3_${id}`}
-						cx={`${coordinates[0] * floorplanWidth}`}
-						cy={`${
-							coordinates[1] * floorplanHeight +
-							(coverageArea.width * resPixelPerCM) / (floorplanRatio / 100)
-						}`}
+						cx={cornerBottomLeft.x}
+						cy={cornerBottomLeft.y}
 						r={`${10 * (resPixelPerCM / 100)}`}
-						transform={`
-						rotate(${coordinates[2]} ${coordinates[0] * floorplanWidth} ${
-							coordinates[1] * floorplanHeight
-						})`}
+						transform={`rotate(${rotation})`}
 						fill="#ffbf1000"
 						style={{ transition: '0.2s ease' }}
-						onMouseDown={(e) => onSetEdgePoint(e.currentTarget)}
+						onMouseDown={(e) => onSetCornerPoint(e.currentTarget)}
 						onMouseEnter={onCircleHover}
 						onMouseLeave={onCircleHover}
 					/>
 					<circle
 						id={`shell_circle-4_${id}`}
-						cx={`${
-							coordinates[0] * floorplanWidth +
-							(coverageArea.length * resPixelPerCM) / (floorplanRatio / 100)
-						}`}
-						cy={`${
-							coordinates[1] * floorplanHeight +
-							(coverageArea.width * resPixelPerCM) / (floorplanRatio / 100)
-						}`}
+						cx={cornerBottomRight.x}
+						cy={cornerBottomRight.y}
 						r={`${10 * (resPixelPerCM / 100)}`}
-						transform={`
-						rotate(${coordinates[2]} ${coordinates[0] * floorplanWidth} ${
-							coordinates[1] * floorplanHeight
-						})`}
+						transform={`rotate(${rotation})`}
 						fill="#ffbf1000"
 						style={{ transition: '0.2s ease' }}
-						onMouseDown={(e) => onSetEdgePoint(e.currentTarget)}
+						onMouseDown={(e) => onSetCornerPoint(e.currentTarget)}
 						onMouseEnter={onCircleHover}
 						onMouseLeave={onCircleHover}
 					/>
@@ -139,12 +185,14 @@ Shell.propTypes = {
 	floorplanHeight: PropTypes.number.isRequired,
 	willAddShell: PropTypes.bool,
 	showEdgePoints: PropTypes.bool,
+	onSetCornerPoint: PropTypes.func,
 	onSetEdgePoint: PropTypes.func,
 };
 
 Shell.defaultProps = {
 	willAddShell: false,
 	showEdgePoints: false,
+	onSetCornerPoint: () => {},
 	onSetEdgePoint: () => {},
 };
 

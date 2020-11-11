@@ -119,7 +119,7 @@ function ShellForm({
 										min={0}
 										max={1}
 										type="number"
-										step="0.001"
+										step="0.0001"
 										value={currentShellCoordinates[0] || ''}
 										placeholder="X"
 										onChange={(e) =>
@@ -136,7 +136,7 @@ function ShellForm({
 										min={0}
 										max={1}
 										type="number"
-										step="0.001"
+										step="0.0001"
 										value={currentShellCoordinates[1] || ''}
 										placeholder="Y"
 										onChange={(e) =>

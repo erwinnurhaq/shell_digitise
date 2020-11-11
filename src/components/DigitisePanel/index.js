@@ -22,7 +22,7 @@ function DigitisePanel({
 	const [wrapperSize, setWrapperSize] = useState({ width: 1, height: 1 });
 	const [heatmaps, setHeatmaps] = useState([]);
 	const [heatpoints, setHeatpoints] = useState([]);
-	const [isEdgeClicked, setIsEdgeClicked] = useState(false);
+	const [isCornerEdgeClicked, setIsCornerEdgeClicked] = useState(false);
 
 	const isComponentMounted = useRef(false);
 	const SVGPanel = useRef(null);
@@ -51,19 +51,46 @@ function DigitisePanel({
 	}
 
 	function onSVGClick(e) {
-		setIsEdgeClicked(false);
-		if (isAddingShell && !isEdgeClicked) {
+		setIsCornerEdgeClicked(false);
+		if (isAddingShell && !isCornerEdgeClicked) {
 			setShellCoordinates(e.point.x, e.point.y, currentShellCoordinates[2]);
 		}
 	}
 
-	function onSetEdgePoint(circle) {
+	function onSetCornerPoint(circle) {
 		let point = circle.ownerSVGElement.createSVGPoint();
 		point.x = circle.getAttribute('cx');
 		point.y = circle.getAttribute('cy');
 		point = point.matrixTransform(circle.transform.baseVal.consolidate().matrix);
-		setIsEdgeClicked(true);
-		setShellCoordinates(point.x, point.y, currentShellCoordinates[2]);
+
+		let rotate =
+			circle
+				.getAttribute('transform')
+				.split(' ')
+				.find((item) => item.includes('rotate')) || 0;
+		if (rotate !== 0) {
+			rotate = parseInt(rotate.replace('rotate(', ''), 10);
+		}
+		setIsCornerEdgeClicked(true);
+		setShellCoordinates(point.x, point.y, rotate);
+	}
+
+	function onSetEdgePoint(rect) {
+		let point = rect.ownerSVGElement.createSVGPoint();
+		point.x = rect.getAttribute('x');
+		point.y = rect.getAttribute('y');
+		point = point.matrixTransform(rect.transform.baseVal.consolidate().matrix);
+
+		let rotate =
+			rect
+				.getAttribute('transform')
+				.split(' ')
+				.find((item) => item.includes('rotate')) || 0;
+		if (rotate !== 0) {
+			rotate = parseInt(rotate.replace('rotate(', ''), 10);
+		}
+		setIsCornerEdgeClicked(true);
+		setShellCoordinates(point.x, point.y, rotate);
 	}
 
 	function renderWillAddShell() {
@@ -168,8 +195,7 @@ function DigitisePanel({
 				heatmapsRef.current[`element_${shell.id}`]
 					.selectAll()
 					.data(heatRow)
-					.enter()
-					.append('rect')
+					.join('rect')
 					.attr('id', (col, colIndex) => `rect_${shell.id}_${heatRowIndex}_${colIndex}`)
 					.attr('x', (col, colIndex) => heatmapsRef.current[`xAxis_${shell.id}`](colIndex))
 					.attr('y', () => heatmapsRef.current[`yAxis_${shell.id}`](heatRowIndex))
@@ -215,6 +241,38 @@ function DigitisePanel({
 	}, []);
 
 	useEffect(() => {
+		if (isShowHeatpoints) {
+			setHeatpoints(generateHeatpoints(shells.length));
+			mockHeatpointsInterval.current = setInterval(() => {
+				setHeatpoints(generateHeatpoints(shells.length));
+			}, 2000);
+		} else {
+			clearInterval(mockHeatpointsInterval.current);
+			mockHeatpointsInterval.current = null;
+		}
+		return () => {
+			clearInterval(mockHeatpointsInterval.current);
+			mockHeatpointsInterval.current = null;
+		};
+	}, [isShowHeatpoints, shells]);
+
+	useEffect(() => {
+		if (isShowHeatmaps) {
+			setHeatmaps(generateHeatmaps(shells.length));
+			mockHeatmapsInterval.current = setInterval(() => {
+				setHeatmaps(generateHeatmaps(shells.length));
+			}, 2000);
+		} else {
+			clearInterval(mockHeatmapsInterval.current);
+			mockHeatmapsInterval.current = null;
+		}
+		return () => {
+			clearInterval(mockHeatmapsInterval.current);
+			mockHeatmapsInterval.current = null;
+		};
+	}, [isShowHeatmaps, shells]);
+
+	useEffect(() => {
 		if (!isShowHeatpoints) {
 			removeDrawHeatpoints();
 		} else {
@@ -230,35 +288,6 @@ function DigitisePanel({
 		}
 	}, [isShowHeatmaps, shells, heatmaps]);
 
-	useEffect(() => {
-		if (isShowHeatpoints) {
-      setHeatpoints(generateHeatpoints(shells.length));
-			mockHeatpointsInterval.current = setInterval(() => {
-				setHeatpoints(generateHeatpoints(shells.length));
-			}, 2000);
-		} else {
-			clearInterval(mockHeatpointsInterval.current);
-		}
-		return () => {
-			clearInterval(mockHeatpointsInterval.current);
-		};
-	}, [isShowHeatpoints, shells]);
-
-  useEffect(() => {
-		if (isShowHeatmaps) {
-      setHeatmaps(generateHeatmaps(shells.length));
-			mockHeatmapsInterval.current = setInterval(() => {
-				setHeatmaps(generateHeatmaps(shells.length));
-			}, 2000);
-		} else {
-			clearInterval(mockHeatmapsInterval.current);
-		}
-		return () => {
-			clearInterval(mockHeatmapsInterval.current);
-		};
-	}, [isShowHeatmaps, shells]);
-
-  console.log(heatpoints, heatmaps)
 	return (
 		<div className="digitise-panel" ref={SVGPanel}>
 			<UncontrolledReactSVGPanZoom
@@ -322,6 +351,7 @@ function DigitisePanel({
 									floorplanWidth={floorplan.width}
 									floorplanHeight={floorplan.height}
 									showEdgePoints={isAddingShell}
+									onSetCornerPoint={onSetCornerPoint}
 									onSetEdgePoint={onSetEdgePoint}
 								/>
 							</React.Fragment>
