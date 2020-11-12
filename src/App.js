@@ -37,6 +37,7 @@ function App() {
 				coverage_area,
 			},
 		]);
+		setIsShowAddProfileModal(false)
 	}
 
 	function addShell({ ts_id, mac_address, version, location }) {
