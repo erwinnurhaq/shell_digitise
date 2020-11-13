@@ -18,7 +18,7 @@ function generateHeatpoints(num) {
 	while (id <= num) {
 		const heatpoints = [];
 		for (let i = 0; i < 10; i++) {
-			heatpoints.push([parseFloat(Math.random()), parseFloat(Math.random())]);
+			heatpoints.push([parseInt(Math.random() * 32) + 1, parseInt(Math.random() * 24) + 1]);
 		}
 		data.push({ id, heatpoints });
 		id++;

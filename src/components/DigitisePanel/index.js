@@ -134,10 +134,10 @@ function DigitisePanel({
 			if (!shellPoint) return;
 
 			const heatData = shellPoint.heatpoints.map((point) => [
-				point[0] *
+				point[0] /32 *
 					((shell.profile.coverage_area.length * resPixelPerCM.current) /
 						(shell.profile.floorplan_ratio / 100)),
-				point[1] *
+				point[1] /24 *
 					((shell.profile.coverage_area.width * resPixelPerCM.current) /
 						(shell.profile.floorplan_ratio / 100)),
 				1,
