@@ -4,7 +4,7 @@ import { Button, Dropdown } from 'prospace-ui';
 import CloseIcon from '../assets/close.png';
 
 function AddProfileModal({ onCancel, onSave }) {
-	const [floorplanRatio, setFloorplanRatio] = useState('');
+	const [pixelRatio, setPixelRatio] = useState('');
 	const [ceilingHeight, setCeilingHeight] = useState('');
 	const [coverageArea, setCoverageArea] = useState({
 		width: '',
@@ -15,7 +15,7 @@ function AddProfileModal({ onCancel, onSave }) {
 
 	function saveProfile() {
 		const CAProfile = {
-			floorplan_ratio: parseInt(floorplanRatio, 10),
+			pixel_ratio: parseInt(pixelRatio, 10),
 			ceiling_height: parseFloat(ceilingHeight, 10),
 			coverage_area: {
 				width: parseFloat(coverageArea.width),
@@ -28,7 +28,7 @@ function AddProfileModal({ onCancel, onSave }) {
 
 	function isButtonDisabled() {
 		if (
-			floorplanRatio === '' ||
+			pixelRatio === '' ||
 			ceilingHeight === '' ||
 			coverageArea.width === '' ||
 			coverageArea.length === ''
@@ -94,11 +94,11 @@ function AddProfileModal({ onCancel, onSave }) {
 						</div>
 					</div>
 					<div className="input-container">
-						<h5>Floorplan Ratio</h5>
+						<h5>Meter to Pixel Ratio</h5>
 						<Dropdown
 							isFluid
-							value={floorplanRatio}
-							onChange={(ev) => setFloorplanRatio(ev.target.value)}
+							value={pixelRatio}
+							onChange={(ev) => setPixelRatio(ev.target.value)}
 						>
 							<option value="0">Select Ratio</option>
 							<option value="50">1 : 50</option>

@@ -1,7 +1,7 @@
 const ca_profiles_list = [
 	{
 		id: 1,
-		floorplan_ratio: 200,
+		pixel_ratio: 50,
 		ceiling_height: 3,
 		coverage_area: { width: 6, length: 8.4 },
 	},

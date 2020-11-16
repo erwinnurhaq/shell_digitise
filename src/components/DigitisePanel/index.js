@@ -29,7 +29,6 @@ function DigitisePanel({
 	const SVGViewer = useRef(null);
 	const heatpointsRef = useRef({});
 	const heatmapsRef = useRef({});
-	const resPixelPerCM = useRef(100);
 
 	const mockHeatpointsInterval = useRef(null);
 	const mockHeatmapsInterval = useRef(null);
@@ -95,15 +94,14 @@ function DigitisePanel({
 
 	function renderWillAddShell() {
 		if (isAddingShell && currentProfileId > 0 && currentShellCoordinates.length > 0) {
-			const { floorplan_ratio, coverage_area } = profiles.find(
+			const { pixel_ratio, coverage_area } = profiles.find(
 				(profile) => profile.id === currentProfileId
 			);
 			return (
 				<Shell
 					id={0}
-					resPixelPerCM={resPixelPerCM.current}
 					coordinates={currentShellCoordinates}
-					floorplanRatio={floorplan_ratio}
+					pixelRatio={pixel_ratio}
 					coverageArea={coverage_area}
 					floorplanWidth={floorplan.width}
 					floorplanHeight={floorplan.height}
@@ -119,8 +117,8 @@ function DigitisePanel({
 			heatpointsRef.current[shell.id] = simpleheat(`canvas_${shell.id}`);
 			heatpointsRef.current[shell.id].max(1);
 			heatpointsRef.current[shell.id].radius(
-				12.5 * (shell.profile.floorplan_ratio / 100),
-				15 * (shell.profile.floorplan_ratio / 100)
+				40 * (shell.profile.pixel_ratio / 100),
+				48 * (shell.profile.pixel_ratio / 100)
 			);
 		});
 	}
@@ -134,12 +132,8 @@ function DigitisePanel({
 			if (!shellPoint) return;
 
 			const heatData = shellPoint.heatpoints.map((point) => [
-				point[0] /32 *
-					((shell.profile.coverage_area.length * resPixelPerCM.current) /
-						(shell.profile.floorplan_ratio / 100)),
-				point[1] /24 *
-					((shell.profile.coverage_area.width * resPixelPerCM.current) /
-						(shell.profile.floorplan_ratio / 100)),
+				(point[0] / 32) * (shell.profile.coverage_area.length * shell.profile.pixel_ratio),
+				(point[1] / 24) * (shell.profile.coverage_area.width * shell.profile.pixel_ratio),
 				1,
 			]);
 			heatpointsRef.current[shell.id].data(heatData);
@@ -168,20 +162,12 @@ function DigitisePanel({
 
 			heatmapsRef.current[`xAxis_${shell.id}`] = d3
 				.scaleBand()
-				.range([
-					0,
-					(shell.profile.coverage_area.length * resPixelPerCM.current) /
-						(shell.profile.floorplan_ratio / 100),
-				])
+				.range([0, shell.profile.coverage_area.length * shell.profile.pixel_ratio])
 				.domain([...Array(32).keys()]);
 
 			heatmapsRef.current[`yAxis_${shell.id}`] = d3
 				.scaleBand()
-				.range([
-					0,
-					(shell.profile.coverage_area.width * resPixelPerCM.current) /
-						(shell.profile.floorplan_ratio / 100),
-				])
+				.range([0, shell.profile.coverage_area.width * shell.profile.pixel_ratio])
 				.domain([...Array(24).keys()]);
 
 			const data = heatmaps.find((item) => item.id === shell.id);
@@ -326,9 +312,8 @@ function DigitisePanel({
 								{isShowHeatpoints && (
 									<HeatPoints
 										id={shell.id}
-										resPixelPerCM={resPixelPerCM.current}
 										coordinates={shell.coordinates}
-										floorplanRatio={shell.profile.floorplan_ratio}
+										pixelRatio={shell.profile.pixel_ratio}
 										coverageArea={shell.profile.coverage_area}
 										floorplanWidth={floorplan.width}
 										floorplanHeight={floorplan.height}
@@ -344,9 +329,8 @@ function DigitisePanel({
 								)}
 								<Shell
 									id={shell.id}
-									resPixelPerCM={resPixelPerCM.current}
 									coordinates={shell.coordinates}
-									floorplanRatio={shell.profile.floorplan_ratio}
+									pixelRatio={shell.profile.pixel_ratio}
 									coverageArea={shell.profile.coverage_area}
 									floorplanWidth={floorplan.width}
 									floorplanHeight={floorplan.height}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ca_profiles_list, shells_list } from './constants/data';
-import imageTest from './assets/Test_A2_1-200(3).png';
+import imageTest from './assets/Test1.jpg';
 import getFloorplanObject from './utils/getFloorplanObject';
 import Header from './components/Header';
 import MainContentHeader from './components/MainContentHeader';
@@ -27,12 +27,12 @@ function App() {
 	const [isAddingShell, setIsAddingShell] = useState(false);
 	const [isEditingShell, setIsEditingShell] = useState(false);
 
-	function addProfile({ floorplan_ratio, ceiling_height, coverage_area }) {
+	function addProfile({ pixel_ratio, ceiling_height, coverage_area }) {
 		setProfiles([
 			...profiles,
 			{
 				id: Math.floor(Math.random() * 100) + 1,
-				floorplan_ratio,
+				pixel_ratio,
 				ceiling_height,
 				coverage_area,
 			},

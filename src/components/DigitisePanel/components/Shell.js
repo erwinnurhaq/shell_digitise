@@ -3,9 +3,8 @@ import PropTypes from 'prop-types';
 
 function Shell({
 	id,
-	resPixelPerCM,
 	coordinates,
-	floorplanRatio,
+	pixelRatio,
 	coverageArea,
 	floorplanWidth,
 	floorplanHeight,
@@ -14,18 +13,10 @@ function Shell({
 	onSetCornerPoint,
 	onSetEdgePoint,
 }) {
-	// Assumption that floorplan ratio is plotted on autocad based on A3 paper Size
-	// OR we can determine resolution pixel per centimeter on profile (add an input on profile creation)
-	// OR set standard resolution pixel per centimeter to be 100 every floorplan
-	// const ResPixelPerCM = floorPlanObj.width / 29.7; // A4 Paper Width (29.7 cm)
-	// const ResPixelPerCM = floorPlanObj.width / 42.02; // A3 Paper Width (42.02 cm)
-	// const ResPixelPerCM = floorPlanObj.width / 59.41; // A2 Paper Width (52.41 cm)
-	// if using paper size as standard, image can't be cropped
-	// const ResPixelPerCM = 100;
 	function onCircleHover(e) {
 		const radius = e.type === 'mouseenter' ? 20 : 10;
 		const fill = e.type === 'mouseenter' ? '#ffc110' : '#ffbf1000';
-		e.target.setAttribute('r', `${radius * (resPixelPerCM / 100)}`);
+		e.target.setAttribute('r', `${radius}`);
 		e.target.setAttribute('fill', fill);
 	}
 
@@ -34,8 +25,8 @@ function Shell({
 		e.target.setAttribute('fill', fill);
 	}
 
-	const shellWidth = (coverageArea.length * resPixelPerCM) / (floorplanRatio / 100);
-	const shellHeight = (coverageArea.width * resPixelPerCM) / (floorplanRatio / 100);
+	const shellWidth = coverageArea.length * pixelRatio;
+	const shellHeight = coverageArea.width * pixelRatio;
 	const cornerTopLeft = {
 		x: coordinates[0] * floorplanWidth,
 		y: coordinates[1] * floorplanHeight,
@@ -65,7 +56,7 @@ function Shell({
 				height={`${shellHeight}px`}
 				fill={willAddShell ? '#ffbf100d' : '#0000ff0d'}
 				stroke={willAddShell ? '#ffc110' : 'blue'}
-				strokeWidth={`${4 * (resPixelPerCM / 100)}px`}
+				strokeWidth={`${8 * pixelRatio / 100}px`}
 			/>
 			{showEdgePoints && (
 				<>
@@ -121,11 +112,11 @@ function Shell({
 						onMouseEnter={onRectHover}
 						onMouseLeave={onRectHover}
 					/>
-					<circle
+					{/* <circle
 						id={`shell_circle-1_${id}`}
 						cx={cornerTopLeft.x}
 						cy={cornerTopLeft.y}
-						r={`${10 * (resPixelPerCM / 100)}`}
+						r={`${20 * pixelRatio / 100}px`}
 						transform={`rotate(${rotation})`}
 						fill="#ffbf1000"
 						style={{ transition: '0.2s ease' }}
@@ -137,7 +128,7 @@ function Shell({
 						id={`shell_circle-2_${id}`}
 						cx={cornerTopRight.x}
 						cy={cornerTopRight.y}
-						r={`${10 * (resPixelPerCM / 100)}`}
+						r={`${20 * pixelRatio / 100}px`}
 						transform={`rotate(${rotation})`}
 						fill="#ffbf1000"
 						style={{ transition: '0.2s ease' }}
@@ -149,7 +140,7 @@ function Shell({
 						id={`shell_circle-3_${id}`}
 						cx={cornerBottomLeft.x}
 						cy={cornerBottomLeft.y}
-						r={`${10 * (resPixelPerCM / 100)}`}
+						r={`${20 * pixelRatio / 100}px`}
 						transform={`rotate(${rotation})`}
 						fill="#ffbf1000"
 						style={{ transition: '0.2s ease' }}
@@ -161,14 +152,14 @@ function Shell({
 						id={`shell_circle-4_${id}`}
 						cx={cornerBottomRight.x}
 						cy={cornerBottomRight.y}
-						r={`${10 * (resPixelPerCM / 100)}`}
+						r={`${20 * pixelRatio / 100}px`}
 						transform={`rotate(${rotation})`}
 						fill="#ffbf1000"
 						style={{ transition: '0.2s ease' }}
 						onMouseDown={(e) => onSetCornerPoint(e.currentTarget)}
 						onMouseEnter={onCircleHover}
 						onMouseLeave={onCircleHover}
-					/>
+					/> */}
 				</>
 			)}
 		</>
@@ -177,9 +168,8 @@ function Shell({
 
 Shell.propTypes = {
 	id: PropTypes.number.isRequired,
-	resPixelPerCM: PropTypes.number.isRequired,
 	coordinates: PropTypes.arrayOf(PropTypes.number).isRequired,
-	floorplanRatio: PropTypes.number.isRequired,
+	pixelRatio: PropTypes.number.isRequired,
 	coverageArea: PropTypes.objectOf(PropTypes.any).isRequired,
 	floorplanWidth: PropTypes.number.isRequired,
 	floorplanHeight: PropTypes.number.isRequired,

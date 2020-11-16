@@ -100,11 +100,11 @@ function ShellForm({
 							>
 								<option value={0}>Select Profile</option>
 								{profiles.length > 0 &&
-									profiles.map(({ id, floorplan_ratio, coverage_area, ceiling_height }) => (
+									profiles.map(({ id, pixel_ratio, coverage_area, ceiling_height }) => (
 										<option key={id} value={id}>
 											D:{coverage_area.length}x{coverage_area.width} H:
 											{ceiling_height} R:
-											{floorplan_ratio}
+											{pixel_ratio}
 										</option>
 									))}
 							</Dropdown>
