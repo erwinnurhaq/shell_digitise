@@ -4,7 +4,6 @@ import { UncontrolledReactSVGPanZoom } from 'react-svg-pan-zoom';
 import * as d3 from 'd3';
 import simpleheat from '../../utils/simpleheat';
 import Shell from './components/Shell';
-import HeatPoints from './components/HeatPoints';
 import HeatMaps from './components/HeatMaps';
 import { generateHeatmaps, generateHeatpoints } from '../../utils/generateHeats';
 
@@ -112,44 +111,71 @@ function DigitisePanel({
 		return null;
 	}
 
-	function assignHeatpoints() {
-		shells.forEach((shell) => {
-			heatpointsRef.current[shell.id] = simpleheat(`canvas_${shell.id}`);
-			heatpointsRef.current[shell.id].max(1);
-			heatpointsRef.current[shell.id].radius(
+	// function assignHeatpoints() {
+	// 	shells.forEach((shell) => {
+	// 		heatpointsRef.current[shell.id] = simpleheat(`canvas_${shell.id}`);
+	// 		heatpointsRef.current[shell.id].max(1);
+	// 		heatpointsRef.current[shell.id].radius(
+	// 			40 * (shell.profile.pixel_ratio / 100),
+	// 			48 * (shell.profile.pixel_ratio / 100)
+	// 		);
+	// 	});
+	// }
+
+	// function drawHeatpoints() {
+	// 	if (isShowHeatpoints && Object.keys(heatpointsRef.current).length === 0) {
+	// 		assignHeatpoints();
+	// 	}
+	// 	return shells.forEach((shell) => {
+	// 		const shellPoint = heatpoints.find((item) => item.id === shell.id);
+	// 		if (!shellPoint) return;
+
+	// 		const heatData = shellPoint.heatpoints.map((point) => [
+	// 			(point[0] / 32) * (shell.profile.coverage_area.length * shell.profile.pixel_ratio),
+	// 			(point[1] / 24) * (shell.profile.coverage_area.width * shell.profile.pixel_ratio),
+	// 			1,
+	// 		]);
+	// 		heatpointsRef.current[shell.id].data(heatData);
+	// 		heatpointsRef.current[shell.id].draw();
+	// 	});
+	// }
+
+	// function removeDrawHeatpoints() {
+	// 	if (Object.keys(heatpointsRef.current).length > 0) {
+	// 		shells.forEach((shell) => {
+	// 			heatpointsRef.current[shell.id].clear();
+	// 			heatpointsRef.current[shell.id].draw();
+	// 		});
+	// 	}
+	// 	heatpointsRef.current = {};
+	// }
+
+	function drawHeatpoints() {
+		heatpointsRef.current = simpleheat(`heatpoints_canvas`);
+		heatpointsRef.current.max(1);
+		let heatData = [];
+
+		heatpoints.forEach((heat) => {
+			const shell = shells.find((item) => item.id === heat.id);
+			heatpointsRef.current.radius(
 				40 * (shell.profile.pixel_ratio / 100),
 				48 * (shell.profile.pixel_ratio / 100)
 			);
+			heatData.push(
+				...heat.heatpoints.map((point) => [
+					shell.coordinates[0] * floorplan.width +
+						(point[0] / 32) * (shell.profile.coverage_area.length * shell.profile.pixel_ratio),
+					shell.coordinates[1] * floorplan.height +
+						(point[1] / 24) * (shell.profile.coverage_area.width * shell.profile.pixel_ratio),
+					1,
+				])
+			);
 		});
+		heatpointsRef.current.data(heatData);
+		heatpointsRef.current.draw();
 	}
 
-	function drawHeatpoints() {
-		if (isShowHeatpoints && Object.keys(heatpointsRef.current).length === 0) {
-			assignHeatpoints();
-		}
-		return shells.forEach((shell) => {
-			const shellPoint = heatpoints.find((item) => item.id === shell.id);
-			if (!shellPoint) return;
-
-			const heatData = shellPoint.heatpoints.map((point) => [
-				(point[0] / 32) * (shell.profile.coverage_area.length * shell.profile.pixel_ratio),
-				(point[1] / 24) * (shell.profile.coverage_area.width * shell.profile.pixel_ratio),
-				1,
-			]);
-			heatpointsRef.current[shell.id].data(heatData);
-			heatpointsRef.current[shell.id].draw();
-		});
-	}
-
-	function removeDrawHeatpoints() {
-		if (Object.keys(heatpointsRef.current).length > 0) {
-			shells.forEach((shell) => {
-				heatpointsRef.current[shell.id].clear();
-				heatpointsRef.current[shell.id].draw();
-			});
-		}
-		heatpointsRef.current = {};
-	}
+	function removeDrawHeatpoints() {}
 
 	function assignHeatmaps() {
 		heatmapsRef.current.colors = d3
@@ -306,19 +332,37 @@ function DigitisePanel({
 						height={floorplan.height}
 						xlinkHref={floorplan.floorplan_url}
 					/>
+					{isShowHeatpoints && (
+						<foreignObject
+							width={floorplan.width}
+							height={floorplan.height}
+							style={{ position: 'relative' }}
+						>
+							<canvas id="heatpoints_canvas" width={floorplan.width} height={floorplan.height} />
+						</foreignObject>
+					)}
 					{shells.length > 0 &&
 						shells.map((shell) => (
 							<React.Fragment key={shell.id}>
-								{isShowHeatpoints && (
-									<HeatPoints
-										id={shell.id}
-										coordinates={shell.coordinates}
-										pixelRatio={shell.profile.pixel_ratio}
-										coverageArea={shell.profile.coverage_area}
-										floorplanWidth={floorplan.width}
-										floorplanHeight={floorplan.height}
-									/>
-								)}
+								{/* {isShowHeatpoints &&
+									heatpoints
+										.find((heat) => heat.id === shell.id)
+										?.heatpoints.map((point) => (
+											<circle
+												cx={
+													shell.coordinates[0] * floorplan.width +
+													(point[0] / 32) *
+														(shell.profile.coverage_area.length * shell.profile.pixel_ratio)
+												}
+												cy={
+													shell.coordinates[1] * floorplan.height +
+													(point[1] / 24) *
+														(shell.profile.coverage_area.width * shell.profile.pixel_ratio)
+												}
+												r={(20 * shell.profile.pixel_ratio) / 100}
+												fill="red"
+											/>
+										))} */}
 								{isShowHeatmaps && (
 									<HeatMaps
 										id={shell.id}
