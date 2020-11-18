@@ -7,7 +7,7 @@ const ca_profiles_list = [
 	},
 ];
 
-const shells_list = new Array(10).fill({}).map((item, idx) => ({
+const shells_list = new Array(5).fill({}).map((item, idx) => ({
 	id: idx + 1,
 	status: 'offline',
 	last_status_update_time: '2020-10-16T18:54:09.729Z',

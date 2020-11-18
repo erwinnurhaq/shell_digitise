@@ -4,7 +4,6 @@ import { UncontrolledReactSVGPanZoom } from 'react-svg-pan-zoom';
 import * as d3 from 'd3';
 import simpleheat from '../../utils/simpleheat';
 import Shell from './components/Shell';
-import HeatMaps from './components/HeatMaps';
 import { generateHeatmaps, generateHeatpoints } from '../../utils/generateHeats';
 
 function DigitisePanel({
@@ -26,8 +25,8 @@ function DigitisePanel({
 	const isComponentMounted = useRef(false);
 	const SVGPanel = useRef(null);
 	const SVGViewer = useRef(null);
-	const heatpointsRef = useRef({});
-	const heatmapsRef = useRef({});
+	const heatpointsRef = useRef(null);
+	const heatmapsRef = useRef(null);
 
 	const mockHeatpointsInterval = useRef(null);
 	const mockHeatmapsInterval = useRef(null);
@@ -96,20 +95,49 @@ function DigitisePanel({
 			const { pixel_ratio, coverage_area } = profiles.find(
 				(profile) => profile.id === currentProfileId
 			);
-			return (
-				<Shell
-					id={0}
-					coordinates={currentShellCoordinates}
-					pixelRatio={pixel_ratio}
-					coverageArea={coverage_area}
-					floorplanWidth={floorplan.width}
-					floorplanHeight={floorplan.height}
-					willAddShell
-				/>
-			);
+			d3.select('#add_shells_group')
+				.selectAll('rect')
+				.data([currentShellCoordinates])
+				.join('rect')
+				.attr('x', (coordinates) => coordinates[0] * floorplan.width)
+				.attr('y', (coordinates) => coordinates[1] * floorplan.height)
+				.attr('width', coverage_area.length * pixel_ratio)
+				.attr('height', coverage_area.width * pixel_ratio)
+				.attr(
+					'transform',
+					(coordinates) =>
+						`rotate(${coordinates[2]} ${coordinates[0] * floorplan.width} ${
+							coordinates[1] * floorplan.height
+						})`
+				)
+				.attr('fill', '#ffbf100d')
+				.attr('stroke', '#ffc110')
+				.attr('stroke-width', (8 * pixel_ratio) / 100)
+				.on('mousedown', (e) => console.log(e))
+		} else {
+			d3.select('#add_shells_group').selectAll('*').remove()
 		}
-		return null;
 	}
+
+	// function renderWillAddShell() {
+	// 	if (isAddingShell && currentProfileId > 0 && currentShellCoordinates.length > 0) {
+	// 		const { pixel_ratio, coverage_area } = profiles.find(
+	// 			(profile) => profile.id === currentProfileId
+	// 		);
+	// 		return (
+	// 			<Shell
+	// 				id={0}
+	// 				coordinates={currentShellCoordinates}
+	// 				pixelRatio={pixel_ratio}
+	// 				coverageArea={coverage_area}
+	// 				floorplanWidth={floorplan.width}
+	// 				floorplanHeight={floorplan.height}
+	// 				willAddShell
+	// 			/>
+	// 		);
+	// 	}
+	// 	return null;
+	// }
 
 	// function assignHeatpoints() {
 	// 	shells.forEach((shell) => {
@@ -150,17 +178,19 @@ function DigitisePanel({
 	// 	heatpointsRef.current = {};
 	// }
 
-	function drawHeatpoints() {
+	function assignHeatpoints() {
 		heatpointsRef.current = simpleheat(`heatpoints_canvas`);
 		heatpointsRef.current.max(1);
-		let heatData = [];
+		heatpointsRef.current.radius(
+			40 * (shells[0].profile.pixel_ratio / 100),
+			48 * (shells[0].profile.pixel_ratio / 100)
+		);
+	}
 
+	function drawHeatpoints() {
+		let heatData = [];
 		heatpoints.forEach((heat) => {
-			const shell = shells.find((item) => item.id === heat.id);
-			heatpointsRef.current.radius(
-				40 * (shell.profile.pixel_ratio / 100),
-				48 * (shell.profile.pixel_ratio / 100)
-			);
+			const shell = shells.find((item) => item.id === heat.shell_id);
 			heatData.push(
 				...heat.heatpoints.map((point) => [
 					shell.coordinates[0] * floorplan.width +
@@ -175,70 +205,108 @@ function DigitisePanel({
 		heatpointsRef.current.draw();
 	}
 
-	function removeDrawHeatpoints() {}
+	function removeDrawHeatpoints() {
+		heatpointsRef.current.clear();
+		heatpointsRef.current.draw();
+	}
 
 	function assignHeatmaps() {
+		heatmapsRef.current = {};
 		heatmapsRef.current.colors = d3
 			.scaleLinear()
+			.domain([23, 32])
 			.range(['rgba(255, 238, 0, 0.1)', 'rgba(255, 68, 0, 0.6)'])
-			.domain([23, 32]);
+			.clamp(true);
 
-		shells.forEach((shell) => {
-			heatmapsRef.current[`element_${shell.id}`] = d3.select(`#heatmaps_${shell.id}`);
+		heatmapsRef.current.xAxis = d3
+			.scaleBand()
+			.domain([...Array(32).keys()])
+			.range([0, shells[0].profile.coverage_area.length * shells[0].profile.pixel_ratio]);
 
-			heatmapsRef.current[`xAxis_${shell.id}`] = d3
-				.scaleBand()
-				.range([0, shell.profile.coverage_area.length * shell.profile.pixel_ratio])
-				.domain([...Array(32).keys()]);
+		heatmapsRef.current.yAxis = d3
+			.scaleBand()
+			.domain([...Array(24).keys()])
+			.range([0, shells[0].profile.coverage_area.width * shells[0].profile.pixel_ratio]);
 
-			heatmapsRef.current[`yAxis_${shell.id}`] = d3
-				.scaleBand()
-				.range([0, shell.profile.coverage_area.width * shell.profile.pixel_ratio])
-				.domain([...Array(24).keys()]);
+		d3.select(`#heatmaps_group`)
+			.selectAll('.heatmaps_shell')
+			.data(shells)
+			.join('g')
+			.attr('class', 'heatmaps_shell')
+			.attr('id', (shell) => `heatmaps_group_${shell.id}`)
+			.attr(
+				'transform',
+				(shell) =>
+					`translate(${shell.coordinates[0] * floorplan.width} ${
+						shell.coordinates[1] * floorplan.height
+					}) rotate(${shell.coordinates[2]} ${shell.coordinates[0] * floorplan.width} ${
+						shell.coordinates[1] * floorplan.height
+					})`
+			)
 
-			const data = heatmaps.find((item) => item.id === shell.id);
-			if (!data) return;
+		// shells.forEach((shell) => {
+		// 	heatmapsRef.current[`element_${shell.id}`] = d3.select(`#heatmaps_${shell.id}`);
 
-			for (let i = 0; i < 24; i += 1) {
-				data.heatmaps.splice(i, 32, data.heatmaps.slice(i, 32 + i));
-			}
+		// 	const data = heatmaps.find((item) => item.id === shell.id);
+		// 	if (!data) return;
 
-			data.heatmaps.forEach((heatRow, heatRowIndex) => {
-				heatmapsRef.current[`element_${shell.id}`]
-					.selectAll()
-					.data(heatRow)
-					.join('rect')
-					.attr('id', (col, colIndex) => `rect_${shell.id}_${heatRowIndex}_${colIndex}`)
-					.attr('x', (col, colIndex) => heatmapsRef.current[`xAxis_${shell.id}`](colIndex))
-					.attr('y', () => heatmapsRef.current[`yAxis_${shell.id}`](heatRowIndex))
-					.attr('width', heatmapsRef.current[`xAxis_${shell.id}`].bandwidth())
-					.attr('height', heatmapsRef.current[`yAxis_${shell.id}`].bandwidth())
-					.style('fill', (val) => heatmapsRef.current.colors(val));
-			});
-		});
+		// 	for (let i = 0; i < 24; i += 1) {
+		// 		data.heatmaps.splice(i, 32, data.heatmaps.slice(i, 32 + i));
+		// 	}
+
+		// 	data.heatmaps.forEach((heatRow, heatRowIndex) => {
+		// 		heatmapsRef.current[`element_${shell.id}`]
+		// 			.selectAll()
+		// 			.data(heatRow)
+		// 			.join('rect')
+		// 			.attr('id', (col, colIndex) => `rect_${shell.id}_${heatRowIndex}_${colIndex}`)
+		// 	});
+		// 			.attr('x', (col, colIndex) => heatmapsRef.current.xAxis(colIndex))
+		// 			.attr('y', () => heatmapsRef.current.yAxis(heatRowIndex))
+		// 			.attr('width', heatmapsRef.current.xAxis.bandwidth())
+		// 			.attr('height', heatmapsRef.current.yAxis.bandwidth())
+		// 			.style('fill', (val) => heatmapsRef.current.colors(val));
+		// });
+	}
+
+	function transformHeatmapData(array, xLength, yLength) {
+		let data = [];
+		for (let i = 0; i < yLength; i++) {
+			data.push(array.slice(i * xLength, i * xLength + xLength));
+		}
+		return data;
 	}
 
 	function drawHeatmaps() {
-		if (isShowHeatmaps && Object.keys(heatmapsRef.current).length === 0) {
-			return assignHeatmaps();
-		}
-		return shells.forEach((shell) => {
-			const data = heatmaps.find((item) => item.id === shell.id);
-			if (!data) return;
-			heatmapsRef.current[`element_${shell.id}`]
-				.selectAll('rect')
-				.data(data.heatmaps)
-				.style('fill', (val) => heatmapsRef.current.colors(val));
+		heatmaps.forEach((heat) => {
+			const data = transformHeatmapData(heat.heatmaps, 32, 24);
+			data.forEach((rowData, rowIndex) => {
+				d3.select(`#heatmaps_group_${heat.shell_id}`)
+					.selectAll(`.rect_${heat.shell_id}_${rowIndex}`)
+					.data(rowData)
+					.join('rect')
+					.attr('class', `rect_${heat.shell_id}_${rowIndex}`)
+					.attr('data-tip', (temp, tempIndex) => `rect_${heat.shell_id}_${rowIndex}_${tempIndex}`)
+					.attr('x', (col, colIndex) => heatmapsRef.current.xAxis(colIndex))
+					.attr('y', () => heatmapsRef.current.yAxis(rowIndex))
+					.attr('width', heatmapsRef.current.xAxis.bandwidth())
+					.attr('height', heatmapsRef.current.yAxis.bandwidth())
+					.style('fill', (val) => heatmapsRef.current.colors(val))
+			});
 		});
+
+		// shells.forEach((shell) => {
+		// 	const data = heatmaps.find((item) => item.id === shell.id);
+		// 	if (!data) return;
+		// 	heatmapsRef.current[`element_${shell.id}`]
+		// 		.selectAll('rect')
+		// 		.data(data.heatmaps)
+		// 		.style('fill', (val) => heatmapsRef.current.colors(val));
+		// });
 	}
 
 	function removeDrawHeatmaps() {
-		if (Object.keys(heatmapsRef.current).length > 0) {
-			shells.forEach((shell) => {
-				heatmapsRef.current[`element_${shell.id}`].selectAll('*').remove();
-			});
-		}
-		heatmapsRef.current = {};
+		d3.select(`#heatmaps_group`).selectAll('g').selectAll('*').remove();
 	}
 
 	useEffect(() => {
@@ -253,7 +321,33 @@ function DigitisePanel({
 	}, []);
 
 	useEffect(() => {
+		d3.select('#shells_group')
+			.selectAll('.rect-shell')
+			.data(shells)
+			.join('rect')
+			.attr('class', 'rect-shell')
+			.attr('x', ({ coordinates }) => coordinates[0] * floorplan.width)
+			.attr('y', ({ coordinates }) => coordinates[1] * floorplan.height)
+			.attr('width', ({ profile }) => `${profile.coverage_area.length * profile.pixel_ratio}px`)
+			.attr('height', ({ profile }) => `${profile.coverage_area.width * profile.pixel_ratio}px`)
+			.attr(
+				'transform',
+				({ coordinates }) =>
+					`rotate(${coordinates[2]} ${coordinates[0] * floorplan.width} ${
+						coordinates[1] * floorplan.height
+					})`
+			)
+			.attr('fill', '#0000ff0d')
+			.attr('stroke', 'blue')
+			.attr('stroke-width', ({ profile }) => `${(8 * profile.pixel_ratio) / 100}px`)
+			.attr('data-tip', ({ id }) => `shell_rect_${id}`);
+	}, [shells]);
+
+	useEffect(() => {
 		if (isShowHeatpoints) {
+			clearInterval(mockHeatpointsInterval.current);
+			mockHeatpointsInterval.current = null;
+			console.log(shells.length)
 			setHeatpoints(generateHeatpoints(shells.length));
 			mockHeatpointsInterval.current = setInterval(() => {
 				setHeatpoints(generateHeatpoints(shells.length));
@@ -261,15 +355,19 @@ function DigitisePanel({
 		} else {
 			clearInterval(mockHeatpointsInterval.current);
 			mockHeatpointsInterval.current = null;
+			setHeatpoints([])
 		}
 		return () => {
 			clearInterval(mockHeatpointsInterval.current);
 			mockHeatpointsInterval.current = null;
+			setHeatpoints([])
 		};
 	}, [isShowHeatpoints, shells]);
 
 	useEffect(() => {
 		if (isShowHeatmaps) {
+			clearInterval(mockHeatmapsInterval.current);
+			mockHeatmapsInterval.current = null;
 			setHeatmaps(generateHeatmaps(shells.length));
 			mockHeatmapsInterval.current = setInterval(() => {
 				setHeatmaps(generateHeatmaps(shells.length));
@@ -285,18 +383,28 @@ function DigitisePanel({
 	}, [isShowHeatmaps, shells]);
 
 	useEffect(() => {
-		if (!isShowHeatpoints) {
-			removeDrawHeatpoints();
-		} else {
+		if (shells.length > 0 && !heatpointsRef.current) {
+			console.log('assign heatpoints canvas once');
+			assignHeatpoints();
+		}
+		if (isShowHeatpoints && shells.length > 0 && heatpointsRef.current) {
 			drawHeatpoints();
+		}
+		if (!isShowHeatpoints && shells.length > 0 && heatpointsRef.current) {
+			removeDrawHeatpoints();
 		}
 	}, [isShowHeatpoints, shells, heatpoints]);
 
 	useEffect(() => {
-		if (!isShowHeatmaps) {
-			removeDrawHeatmaps();
-		} else {
+		if (shells.length > 0 && !heatmapsRef.current) {
+			console.log('assign heatmaps once');
+			assignHeatmaps();
+		}
+		if (isShowHeatmaps && heatmapsRef.current) {
 			drawHeatmaps();
+		}
+		if (!isShowHeatmaps && heatmapsRef.current) {
+			removeDrawHeatmaps();
 		}
 	}, [isShowHeatmaps, shells, heatmaps]);
 
@@ -332,59 +440,17 @@ function DigitisePanel({
 						height={floorplan.height}
 						xlinkHref={floorplan.floorplan_url}
 					/>
-					{isShowHeatpoints && (
-						<foreignObject
-							width={floorplan.width}
-							height={floorplan.height}
-							style={{ position: 'relative' }}
-						>
-							<canvas id="heatpoints_canvas" width={floorplan.width} height={floorplan.height} />
-						</foreignObject>
-					)}
-					{shells.length > 0 &&
-						shells.map((shell) => (
-							<React.Fragment key={shell.id}>
-								{/* {isShowHeatpoints &&
-									heatpoints
-										.find((heat) => heat.id === shell.id)
-										?.heatpoints.map((point) => (
-											<circle
-												cx={
-													shell.coordinates[0] * floorplan.width +
-													(point[0] / 32) *
-														(shell.profile.coverage_area.length * shell.profile.pixel_ratio)
-												}
-												cy={
-													shell.coordinates[1] * floorplan.height +
-													(point[1] / 24) *
-														(shell.profile.coverage_area.width * shell.profile.pixel_ratio)
-												}
-												r={(20 * shell.profile.pixel_ratio) / 100}
-												fill="red"
-											/>
-										))} */}
-								{isShowHeatmaps && (
-									<HeatMaps
-										id={shell.id}
-										coordinates={shell.coordinates}
-										floorplanWidth={floorplan.width}
-										floorplanHeight={floorplan.height}
-									/>
-								)}
-								<Shell
-									id={shell.id}
-									coordinates={shell.coordinates}
-									pixelRatio={shell.profile.pixel_ratio}
-									coverageArea={shell.profile.coverage_area}
-									floorplanWidth={floorplan.width}
-									floorplanHeight={floorplan.height}
-									showEdgePoints={isAddingShell}
-									onSetCornerPoint={onSetCornerPoint}
-									onSetEdgePoint={onSetEdgePoint}
-								/>
-							</React.Fragment>
-						))}
-					{renderWillAddShell()}
+
+					<foreignObject
+						width={floorplan.width}
+						height={floorplan.height}
+						style={{ position: 'relative' }}
+					>
+						<canvas id="heatpoints_canvas" width={floorplan.width} height={floorplan.height} />
+					</foreignObject>
+					<g id="heatmaps_group" />
+					<g id="shells_group" />
+					<g id="add_shells_group">{renderWillAddShell()}</g>
 				</svg>
 			</UncontrolledReactSVGPanZoom>
 		</div>

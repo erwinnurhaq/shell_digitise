@@ -48,7 +48,8 @@ function Shell({
 				fill={willAddShell ? '#ffbf100d' : '#0000ff0d'}
 				stroke={willAddShell ? '#ffc110' : 'blue'}
 				strokeWidth={`${(8 * pixelRatio) / 100}px`}
-			/>
+				data-tip={`shell_rect_${id}`}
+				/>
 			{showEdgePoints &&
 				Object.keys(surroundingRectCoordinates).map((position, index) => (
 					<rect
