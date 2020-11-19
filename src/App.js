@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { shells_list } from './constants/data';
-import imageTest from './assets/Test1.jpg';
+import imageTest from './assets/Test_A2_1-200(3).png';
 import getFloorplanObject from './utils/getFloorplanObject';
 import Header from './components/Header';
 import MainContentHeader from './components/MainContentHeader';
