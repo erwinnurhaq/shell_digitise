@@ -133,13 +133,19 @@ simpleheat.prototype = {
 				),
 				1
 			);
-			ctx.drawImage(this._circle, p[0] - this._r, p[1] - this._r);
+			ctx.drawImage(this._circle, p[0] - this._r, p[1] - this._r)
 		}
 
 		// colorize the heatmap, using opacity value of each pixel to get the right color from our gradient
 		var colored = ctx.getImageData(0, 0, this._width, this._height);
 		this._colorize(colored.data, this._grad);
 		ctx.putImageData(colored, 0, 0);
+
+		// this._data.forEach(p => {
+		// 	ctx.font = "16px Arial"
+		// 	ctx.fillStyle = "maroon"
+		// 	ctx.fillText(`( ${Math.round(p[0])}, ${Math.round(p[1])} )`, p[0], p[1])
+		// })
 
 		return this;
 	},

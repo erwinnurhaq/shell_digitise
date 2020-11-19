@@ -276,28 +276,74 @@ function DigitisePanel({
 
 	// GENERATE SHELL ===================================================================/
 
+	// useEffect(() => {
+	// 	if (shells.length > 0 && currentProfile) {
+	// 		select('#shells_group')
+	// 			.selectAll('.rect-shell')
+	// 			.data(shells)
+	// 			.join('rect')
+	// 			.attr('class', 'rect-shell')
+	// 			.attr('x', ({ coordinates }) => coordinates[0] * floorplan.width)
+	// 			.attr('y', ({ coordinates }) => coordinates[1] * floorplan.height)
+	// 			.attr('width', currentProfile.coverage_area.length * currentProfile.pixel_ratio)
+	// 			.attr('height', currentProfile.coverage_area.width * currentProfile.pixel_ratio)
+	// 			.attr(
+	// 				'transform',
+	// 				({ coordinates }) =>
+	// 					`rotate(${coordinates[2]} ${coordinates[0] * floorplan.width} ${
+	// 						coordinates[1] * floorplan.height
+	// 					})`
+	// 			)
+	// 			.attr('fill', '#0000ff0d')
+	// 			.attr('stroke', 'blue')
+	// 			.attr('stroke-width', (8 * currentProfile.pixel_ratio) / 100)
+	// 			.attr('data-tip', ({ id }) => `shell_rect_${id}`)
+	// 	}
+	// }, [shells, currentProfile]);
+
 	useEffect(() => {
 		if (shells.length > 0 && currentProfile) {
 			select('#shells_group')
-				.selectAll('.rect-shell')
+				.selectAll('.rect-shell-group')
 				.data(shells)
-				.join('rect')
-				.attr('class', 'rect-shell')
-				.attr('x', ({ coordinates }) => coordinates[0] * floorplan.width)
-				.attr('y', ({ coordinates }) => coordinates[1] * floorplan.height)
-				.attr('width', currentProfile.coverage_area.length * currentProfile.pixel_ratio)
-				.attr('height', currentProfile.coverage_area.width * currentProfile.pixel_ratio)
+				.join((enter) => {
+					const group = enter.append('g');
+					group
+						.append('rect')
+						.attr('class', 'rect-shell')
+						.attr('x', ({ coordinates }) => coordinates[0] * floorplan.width)
+						.attr('y', ({ coordinates }) => coordinates[1] * floorplan.height)
+						.attr('width', currentProfile.coverage_area.length * currentProfile.pixel_ratio)
+						.attr('height', currentProfile.coverage_area.width * currentProfile.pixel_ratio)
+						.attr('fill', '#0000ff0d')
+						.attr('stroke', 'blue')
+						.attr('stroke-width', (8 * currentProfile.pixel_ratio) / 100)
+						.attr('data-tip', ({ id }) => `shell_rect_${id}`);
+					group
+						.append('rect')
+						.attr('x', ({ coordinates }) => coordinates[0] * floorplan.width)
+						.attr('y', ({ coordinates }) => coordinates[1] * floorplan.height)
+						.attr('width', 150)
+						.attr('height', 25)
+						.attr('fill', 'blue')
+					group
+						.append('text')
+						.attr('class', 'title-shell')
+						.text(({ id, ts_id }) => ` ${id} / ${ts_id} `)
+						.attr('x', ({ coordinates }) => coordinates[0] * floorplan.width + 20)
+						.attr('y', ({ coordinates }) => coordinates[1] * floorplan.height + 20)
+						.attr('font-size', 20)
+						.attr('fill', 'white');
+					return group;
+				})
+				.attr('class', 'rect-shell-group')
 				.attr(
 					'transform',
 					({ coordinates }) =>
 						`rotate(${coordinates[2]} ${coordinates[0] * floorplan.width} ${
 							coordinates[1] * floorplan.height
 						})`
-				)
-				.attr('fill', '#0000ff0d')
-				.attr('stroke', 'blue')
-				.attr('stroke-width', (8 * currentProfile.pixel_ratio) / 100)
-				.attr('data-tip', ({ id }) => `shell_rect_${id}`)
+				);
 		}
 	}, [shells, currentProfile]);
 
