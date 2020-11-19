@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Button, Dropdown } from 'prospace-ui';
+import { Button } from 'prospace-ui';
 
 function ShellForm({
 	isEdit,
 	selectedShell,
 	shellsCount,
-	profiles,
-	currentProfileId,
+	currentProfile,
 	currentShellCoordinates,
-	setCurrentProfileId,
 	setCurrentShellCoordinates,
 	onSave,
 	onCancel,
@@ -42,7 +40,6 @@ function ShellForm({
 		if (
 			shellData.mac_address.length > 0 &&
 			shellData.version.length > 0 &&
-			currentProfileId > 0 &&
 			currentShellCoordinates.length > 0
 		) {
 			return false;
@@ -93,21 +90,14 @@ function ShellForm({
 							</div>
 						</div>
 						<div className="input-container">
-							<h5>Coverage Area Profile</h5>
-							<Dropdown
-								value={currentProfileId}
-								onChange={(ev) => setCurrentProfileId(parseInt(ev.target.value, 10))}
-							>
-								<option value={0}>Select Profile</option>
-								{profiles.length > 0 &&
-									profiles.map(({ id, pixel_ratio, coverage_area, ceiling_height }) => (
-										<option key={id} value={id}>
-											D:{coverage_area.length}x{coverage_area.width} H:
-											{ceiling_height} R:
-											{pixel_ratio}
-										</option>
-									))}
-							</Dropdown>
+							<h5>Profile</h5>
+							<div className="ui input fluid">
+								<input
+									type="text"
+									value={`D:${currentProfile.coverage_area.length}x${currentProfile.coverage_area.width} H:${currentProfile.ceiling_height} R:${currentProfile.pixel_ratio}`}
+									disabled
+								/>
+							</div>
 						</div>
 					</div>
 					<div className="form-content__row">
@@ -154,8 +144,8 @@ function ShellForm({
 							<h5>Rotate</h5>
 							<div className="ui input fluid">
 								<input
-									min={0}
-									max={359}
+									min={1}
+									max={360}
 									type="number"
 									placeholder="rotate"
 									value={currentShellCoordinates[2] || ''}
@@ -229,16 +219,15 @@ ShellForm.propTypes = {
 	isEdit: PropTypes.bool,
 	selectedShell: PropTypes.objectOf(PropTypes.any),
 	shellsCount: PropTypes.number.isRequired,
-	profiles: PropTypes.arrayOf(PropTypes.object).isRequired,
-	currentProfileId: PropTypes.number.isRequired,
+	currentProfile: PropTypes.objectOf(PropTypes.any).isRequired,
 	currentShellCoordinates: PropTypes.arrayOf(PropTypes.number).isRequired,
 	onSave: PropTypes.func.isRequired,
 	onCancel: PropTypes.func.isRequired,
 };
 
 ShellForm.defaultProps = {
-  isEdit: false,
-  selectedShell: {},
+	isEdit: false,
+	selectedShell: {},
 };
 
 export default ShellForm;

@@ -1,18 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ca_profiles_list, shells_list } from './constants/data';
+import React, { useState, useEffect } from 'react';
+import { shells_list } from './constants/data';
 import imageTest from './assets/Test1.jpg';
 import getFloorplanObject from './utils/getFloorplanObject';
 import Header from './components/Header';
 import MainContentHeader from './components/MainContentHeader';
 import ShellForm from './components/ShellForm';
-import AddProfileModal from './components/AddProfileModal';
 import MainContentTable from './components/MainContentTable';
 import DigitisePanel from './components/DigitisePanel';
 
 function App() {
-	const [profiles, setProfiles] = useState([]);
 	const [shells, setShells] = useState([]);
-	const [currentProfileId, setCurrentProfileId] = useState(0);
+	const [currentProfile, setCurrentProfile] = useState({
+		id: 0,
+		pixel_ratio: 0,
+		ceiling_height: 0,
+		coverage_area: { width: 0, length: 0 },
+	});
 	const [currentShellCoordinates, setCurrentShellCoordinates] = useState([]);
 	const [currentEditingShellId, setCurrentEditingShellId] = useState(0);
 	const [floorplan, setFloorplan] = useState({
@@ -23,30 +26,14 @@ function App() {
 
 	const [isShowHeatpoints, setIsShowHeatpoints] = useState(false);
 	const [isShowHeatmaps, setIsShowHeatmaps] = useState(false);
-	const [isShowAddProfileModal, setIsShowAddProfileModal] = useState(false);
 	const [isAddingShell, setIsAddingShell] = useState(false);
 	const [isEditingShell, setIsEditingShell] = useState(false);
-
-	function addProfile({ pixel_ratio, ceiling_height, coverage_area }) {
-		setProfiles([
-			...profiles,
-			{
-				id: Math.floor(Math.random() * 100) + 1,
-				pixel_ratio,
-				ceiling_height,
-				coverage_area,
-			},
-		]);
-		setIsShowAddProfileModal(false)
-	}
 
 	function addShell({ ts_id, mac_address, version, location }) {
 		setShells([
 			...shells,
 			{
-				id: Math.floor(Math.random() * 100) + 1,
-				profile_id: currentProfileId,
-				profile: profiles.find((profile) => profile.id === currentProfileId),
+				id: shells.map((shell) => shell.id).sort((a, b) => b - a)[0] + 1,
 				coordinates: currentShellCoordinates,
 				ts_id,
 				mac_address,
@@ -54,7 +41,6 @@ function App() {
 				location,
 			},
 		]);
-		setCurrentProfileId(0);
 		setCurrentShellCoordinates([]);
 		setIsAddingShell(false);
 	}
@@ -71,7 +57,6 @@ function App() {
 
 	function cancelShellForm() {
 		setCurrentShellCoordinates([]);
-		setCurrentProfileId(0);
 		setCurrentEditingShellId(0);
 		setIsAddingShell(false);
 		setIsEditingShell(false);
@@ -80,36 +65,33 @@ function App() {
 	useEffect(() => {
 		getFloorplanObject(imageTest).then((floorplan) => {
 			setFloorplan(floorplan);
-			setProfiles(ca_profiles_list);
-			setShells(
-				shells_list.map((shell) => ({
-					...shell,
-					profile: ca_profiles_list.find((profile) => profile.id === shell.profile_id),
-				}))
-			);
+			setCurrentProfile({
+				id: 1,
+				pixel_ratio: 50,
+				ceiling_height: 3,
+				coverage_area: { width: 6, length: 8.4 },
+			});
+			setShells(shells_list);
 		});
 	}, []);
 
 	return (
 		<div className="App">
-			{isShowAddProfileModal && (
-				<AddProfileModal onSave={addProfile} onCancel={() => setIsShowAddProfileModal(false)} />
-			)}
 			<Header
 				isShowHeatpoints={isShowHeatpoints}
 				isShowHeatmaps={isShowHeatmaps}
 				setIsShowHeatpoints={setIsShowHeatpoints}
 				setIsShowHeatmaps={setIsShowHeatmaps}
+				isAddingShell={isAddingShell}
 			/>
 			<div className="main">
 				<div className="ui segment fluid container digitise-panel-content">
 					<DigitisePanel
 						shells={shells}
-						profiles={profiles}
 						floorplan={floorplan}
 						isShowHeatmaps={isShowHeatmaps}
 						isShowHeatpoints={isShowHeatpoints}
-						currentProfileId={currentProfileId}
+						currentProfile={currentProfile}
 						currentShellCoordinates={currentShellCoordinates}
 						setCurrentShellCoordinates={setCurrentShellCoordinates}
 						isAddingShell={isAddingShell}
@@ -118,18 +100,19 @@ function App() {
 				<div className="ui segment fluid container main-content">
 					<MainContentHeader
 						shells={shells}
-						isButtonDisabled={isAddingShell || isEditingShell || isShowAddProfileModal}
+						isButtonDisabled={isAddingShell || isEditingShell}
 						isAddingShell={isAddingShell}
-						setIsAddingShell={setIsAddingShell}
-						setIsShowAddProfileModal={setIsShowAddProfileModal}
+						setIsAddingShell={val => {
+							setIsAddingShell(val)
+							setIsShowHeatmaps(false)
+							setIsShowHeatpoints(false)
+						}}
 					/>
 					{isAddingShell && (
 						<ShellForm
 							shellsCount={shells.length}
-							profiles={profiles}
-							currentProfileId={currentProfileId}
+							currentProfile={currentProfile}
 							currentShellCoordinates={currentShellCoordinates}
-							setCurrentProfileId={setCurrentProfileId}
 							setCurrentShellCoordinates={setCurrentShellCoordinates}
 							onSave={(data) => addShell(data)}
 							onCancel={cancelShellForm}
@@ -137,12 +120,10 @@ function App() {
 					)}
 					<MainContentTable
 						items={shells}
-						profiles={profiles}
-						currentProfileId={currentProfileId}
+						currentProfile={currentProfile}
 						currentEditingShellId={currentEditingShellId}
 						currentShellCoordinates={currentShellCoordinates}
-						isButtonDisabled={isAddingShell || isEditingShell || isShowAddProfileModal}
-						setCurrentProfileId={setCurrentProfileId}
+						isButtonDisabled={isAddingShell || isEditingShell}
 						setCurrentShellCoordinates={setCurrentShellCoordinates}
 						setCurrentEditingShellId={setCurrentEditingShellId}
 						setIsEditingShell={setIsEditingShell}

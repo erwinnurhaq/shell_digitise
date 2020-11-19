@@ -6,7 +6,6 @@ function MainContentHeader({
 	shells,
   isAddingShell,
   setIsAddingShell,
-  setIsShowAddProfileModal,
 	isButtonDisabled,
 }) {
 	return (
@@ -26,13 +25,6 @@ function MainContentHeader({
 						onClick={() => {}}
 					>
 						ADD BULK SHELL
-					</Button>
-					<Button
-						disabledFuncCondition={isButtonDisabled}
-						disabledStyleCondition={isButtonDisabled}
-						onClick={() => setIsShowAddProfileModal(true)}
-					>
-						COVERAGE AREA - PROFILE CREATION
 					</Button>
 				</div>
 				<div className="section-content">
@@ -67,7 +59,6 @@ MainContentHeader.propTypes = {
 	isAddingShell: PropTypes.bool.isRequired,
 	isButtonDisabled: PropTypes.bool.isRequired,
   setIsAddingShell: PropTypes.func.isRequired,
-  setIsShowAddProfileModal: PropTypes.func.isRequired,
 };
 
 export default MainContentHeader;

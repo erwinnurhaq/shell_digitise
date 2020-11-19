@@ -6,8 +6,7 @@ import ShellForm from './ShellForm';
 
 const MainContentTable = ({
 	items,
-	profiles,
-	currentProfileId,
+	currentProfile,
 	currentEditingShellId,
 	currentShellCoordinates,
 	isButtonDisabled,
@@ -41,8 +40,7 @@ const MainContentTable = ({
 											isEdit
 											selectedShell={item}
 											shellsCount={items.length}
-											profiles={profiles}
-											currentProfileId={currentProfileId}
+											currentProfile={currentProfile}
 											currentShellCoordinates={currentShellCoordinates}
 											setCurrentProfileId={setCurrentProfileId}
 											setCurrentShellCoordinates={setCurrentShellCoordinates}
@@ -122,12 +120,10 @@ const MainContentTable = ({
 
 MainContentTable.propTypes = {
 	items: PropTypes.arrayOf(PropTypes.object).isRequired,
-	profiles: PropTypes.arrayOf(PropTypes.object).isRequired,
-	currentProfileId: PropTypes.number.isRequired,
+	currentProfile: PropTypes.objectOf(PropTypes.any).isRequired,
 	currentEditingShellId: PropTypes.number.isRequired,
 	currentShellCoordinates: PropTypes.arrayOf(PropTypes.number).isRequired,
 	isButtonDisabled: PropTypes.bool.isRequired,
-	setCurrentProfileId: PropTypes.func.isRequired,
 	setCurrentShellCoordinates: PropTypes.func.isRequired,
 	setCurrentEditingShellId: PropTypes.func.isRequired,
 	setIsEditingShell: PropTypes.func.isRequired,

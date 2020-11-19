@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Dropdown } from 'prospace-ui';
 
-function Header({ isShowHeatpoints, isShowHeatmaps, setIsShowHeatpoints, setIsShowHeatmaps }) {
+function Header({ isShowHeatpoints, isShowHeatmaps, setIsShowHeatpoints, setIsShowHeatmaps, isAddingShell }) {
 	return (
 		<div className="header">
 			<Dropdown value="" onChange={() => {}} isDisabled={true}>
@@ -18,6 +18,7 @@ function Header({ isShowHeatpoints, isShowHeatmaps, setIsShowHeatpoints, setIsSh
 						setIsShowHeatpoints(ev.target.checked);
 						setIsShowHeatmaps(false);
 					}}
+					disabled={isAddingShell}
 				/>
 			</div>
 			<div className="toggle-status-container">
@@ -29,6 +30,7 @@ function Header({ isShowHeatpoints, isShowHeatmaps, setIsShowHeatpoints, setIsSh
 						setIsShowHeatmaps(ev.target.checked);
 						setIsShowHeatpoints(false);
 					}}
+					disabled={isAddingShell}
 				/>
 			</div>
 		</div>
@@ -40,6 +42,7 @@ Header.propTypes = {
 	isShowHeatmaps: PropTypes.bool.isRequired,
 	setIsShowHeatpoints: PropTypes.func.isRequired,
 	setIsShowHeatmaps: PropTypes.func.isRequired,
+	isAddingShell: PropTypes.bool.isRequired
 };
 
 export default Header;
