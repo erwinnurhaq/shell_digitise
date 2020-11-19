@@ -30,6 +30,9 @@ function App() {
 	const [isEditingShell, setIsEditingShell] = useState(false);
 
 	function addShell({ ts_id, mac_address, version, location }) {
+		if (currentShellCoordinates[2] < 0) {
+			currentShellCoordinates.splice(2, 1, currentShellCoordinates[2] + 360);
+		}
 		setShells([
 			...shells,
 			{
@@ -102,10 +105,10 @@ function App() {
 						shells={shells}
 						isButtonDisabled={isAddingShell || isEditingShell}
 						isAddingShell={isAddingShell}
-						setIsAddingShell={val => {
-							setIsAddingShell(val)
-							setIsShowHeatmaps(false)
-							setIsShowHeatpoints(false)
+						setIsAddingShell={(val) => {
+							setIsAddingShell(val);
+							setIsShowHeatmaps(false);
+							setIsShowHeatpoints(false);
 						}}
 					/>
 					{isAddingShell && (

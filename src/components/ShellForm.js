@@ -30,9 +30,9 @@ function ShellForm({
 
 	function changePosition(x = 0, y = 0, rotate = 0) {
 		setCurrentShellCoordinates([
-			isNaN(x) ? 0 : x > 1 ? 1 : x,
-			isNaN(y) ? 0 : y > 1 ? 1 : y,
-			isNaN(rotate) || rotate > 359 ? 0 : rotate,
+			isNaN(x) ? 0 : x, 
+			isNaN(y) ? 0 : y, 
+			isNaN(rotate) ? 0 : rotate
 		]);
 	}
 
@@ -114,7 +114,7 @@ function ShellForm({
 										placeholder="X"
 										onChange={(e) =>
 											changePosition(
-												parseFloat(e.target.value.replace(/-/g, '')),
+												Math.abs(parseFloat(e.target.value)),
 												currentShellCoordinates[1],
 												currentShellCoordinates[2]
 											)
@@ -132,7 +132,7 @@ function ShellForm({
 										onChange={(e) =>
 											changePosition(
 												currentShellCoordinates[0],
-												parseFloat(e.target.value.replace(/-/g, '')),
+												Math.abs(parseFloat(e.target.value)),
 												currentShellCoordinates[2]
 											)
 										}
@@ -144,7 +144,7 @@ function ShellForm({
 							<h5>Rotate</h5>
 							<div className="ui input fluid">
 								<input
-									min={1}
+									min={-360}
 									max={360}
 									type="number"
 									placeholder="rotate"
@@ -153,7 +153,7 @@ function ShellForm({
 										changePosition(
 											currentShellCoordinates[0],
 											currentShellCoordinates[1],
-											parseInt(e.target.value.replace(/-/g, ''), 10)
+											parseInt(e.target.value, 10)
 										)
 									}
 								/>

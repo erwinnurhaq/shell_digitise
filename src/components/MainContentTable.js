@@ -10,7 +10,6 @@ const MainContentTable = ({
 	currentEditingShellId,
 	currentShellCoordinates,
 	isButtonDisabled,
-	setCurrentProfileId,
 	setCurrentShellCoordinates,
 	setCurrentEditingShellId,
 	setIsEditingShell,
@@ -42,7 +41,6 @@ const MainContentTable = ({
 											shellsCount={items.length}
 											currentProfile={currentProfile}
 											currentShellCoordinates={currentShellCoordinates}
-											setCurrentProfileId={setCurrentProfileId}
 											setCurrentShellCoordinates={setCurrentShellCoordinates}
 											onSave={() => {}}
 											onCancel={onCancelEdit}
@@ -90,7 +88,6 @@ const MainContentTable = ({
 										type="secondary"
 										onClick={() => {
                       setCurrentEditingShellId(item.id)
-                      setCurrentProfileId(item.profile_id);
                       setCurrentShellCoordinates(item.coordinates);
                       setIsEditingShell(true)
                     }}
