@@ -153,20 +153,10 @@ function DigitisePanel({
 			.data(heatmaps)
 			.join('g')
 			.attr('class', 'heatmaps_shell_group')
-			.attr('transform', ({ shell_id }) => {
-				const shell = shells.find((item) => item.id === shell_id);
-				if (shell) {
-					return `translate(${shell.coordinates[0] * floorplan.width} ${
-						shell.coordinates[1] * floorplan.height
-					}) rotate(${shell.coordinates[2]})`;
-				}
-				return '';
-			})
 			.each(function (data) {
-				const transformed = transformHeatmapData(data.heatmaps, 32, 24);
 				select(this)
 					.selectAll('.heat-cell-group')
-					.data(transformed)
+					.data(transformHeatmapData(data.heatmaps, 32, 24))
 					.join('g')
 					.attr('class', 'heat-cell-group')
 					.each(function (d, i) {
@@ -180,6 +170,15 @@ function DigitisePanel({
 							.attr('height', heatmapsRef.current.yAxis.bandwidth())
 							.style('fill', (val) => heatmapsRef.current.colors(val));
 					});
+			})
+			.attr('transform', ({ shell_id }) => {
+				const shell = shells.find((item) => item.id === shell_id);
+				if (shell) {
+					return `translate(${shell.coordinates[0] * floorplan.width} ${
+						shell.coordinates[1] * floorplan.height
+					}) rotate(${shell.coordinates[2]})`;
+				}
+				return '';
 			});
 	}
 
@@ -279,31 +278,6 @@ function DigitisePanel({
 	}, [shells, currentProfile, isAddingShell]); // eslint-disable-line
 
 	// GENERATE SHELL ===================================================================/
-
-	// useEffect(() => {
-	// 	if (shells.length > 0 && currentProfile) {
-	// 		select('#shells_group')
-	// 			.selectAll('.rect-shell')
-	// 			.data(shells)
-	// 			.join('rect')
-	// 			.attr('class', 'rect-shell')
-	// 			.attr('x', ({ coordinates }) => coordinates[0] * floorplan.width)
-	// 			.attr('y', ({ coordinates }) => coordinates[1] * floorplan.height)
-	// 			.attr('width', currentProfile.coverage_area.length * currentProfile.pixel_ratio)
-	// 			.attr('height', currentProfile.coverage_area.width * currentProfile.pixel_ratio)
-	// 			.attr(
-	// 				'transform',
-	// 				({ coordinates }) =>
-	// 					`rotate(${coordinates[2]} ${coordinates[0] * floorplan.width} ${
-	// 						coordinates[1] * floorplan.height
-	// 					})`
-	// 			)
-	// 			.attr('fill', '#0000ff0d')
-	// 			.attr('stroke', 'blue')
-	// 			.attr('stroke-width', (8 * currentProfile.pixel_ratio) / 100)
-	// 			.attr('data-tip', ({ id }) => `shell_rect_${id}`)
-	// 	}
-	// }, [shells, currentProfile]);
 
 	useEffect(() => {
 		if (shells.length > 0 && currentProfile) {
