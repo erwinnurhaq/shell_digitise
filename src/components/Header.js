@@ -5,7 +5,7 @@ import { Dropdown } from 'prospace-ui';
 function Header({ isShowHeatpoints, isShowHeatmaps, setIsShowHeatpoints, setIsShowHeatmaps, isAddingShell }) {
 	return (
 		<div className="header">
-			<Dropdown value="" onChange={() => {}} isDisabled={true}>
+			<Dropdown value="" onChange={() => {}} isDisabled>
 				<option value="">Select Floor</option>
 				<option value=""></option>
 			</Dropdown>

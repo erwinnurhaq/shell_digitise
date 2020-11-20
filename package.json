@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "d3": "6.2.0",
+    "d3-scale": "3.2.3",
+    "d3-selection": "2.0.0",
     "prop-types": "15.7.2",
     "prospace-ui": "0.1.11-alpha",
     "react": "16.13.1",

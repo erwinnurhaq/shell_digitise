@@ -19,6 +19,7 @@ function ShellForm({
 		location: '',
 	});
 
+	// eslint-disable-next-line
 	const [sensorStatus, setSensorStatus] = useState({
 		thermal_sense: '',
 		temperature: '',
@@ -28,6 +29,7 @@ function ShellForm({
 		hu_count: '',
 	});
 
+	/* eslint-disable */
 	function changePosition(x = 0, y = 0, rotate = 0) {
 		setCurrentShellCoordinates([
 			isNaN(x) ? 0 : x, 
@@ -35,6 +37,7 @@ function ShellForm({
 			isNaN(rotate) ? 0 : rotate
 		]);
 	}
+	/* eslint-enable */
 
 	function isButtonDisabled() {
 		if (
@@ -53,7 +56,7 @@ function ShellForm({
 		} else {
 			setShellData({ ...shellData, ts_id: `TS0${Math.floor(Math.random() * 100) + 1}` });
 		}
-	}, []);
+	}, []); // eslint-disable-line 
 
 	return (
 		<div className="main-content__form-container">

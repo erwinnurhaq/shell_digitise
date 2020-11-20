@@ -1,11 +1,9 @@
-const ca_profiles_list = [
-	{
-		id: 1,
-		pixel_ratio: 50,
-		ceiling_height: 3,
-		coverage_area: { width: 6, length: 8.4 },
-	},
-];
+const ca_profile = {
+	id: 1,
+	pixel_ratio: 50,
+	ceiling_height: 3,
+	coverage_area: { width: 6, length: 8.4 },
+};
 
 const shells_list = new Array(40).fill({}).map((item, idx) => ({
 	id: idx + 1,
@@ -16,7 +14,7 @@ const shells_list = new Array(40).fill({}).map((item, idx) => ({
 	mac_address: '24:6F:28:3F:D4:C8',
 	version: '1.0',
 	location: '',
-}))
+}));
 // const shells_list = [
 // 	{
 // 		id: 1,
@@ -40,4 +38,4 @@ const shells_list = new Array(40).fill({}).map((item, idx) => ({
 // 	}
 // ]
 
-export { ca_profiles_list, shells_list };
+export { ca_profile, shells_list };

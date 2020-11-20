@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { shells_list } from './constants/data';
+import { ca_profile, shells_list } from './constants/data';
 import imageTest from './assets/Test_A2_1-200(3).png';
 import getFloorplanObject from './utils/getFloorplanObject';
 import Header from './components/Header';
@@ -66,17 +66,12 @@ function App() {
 	}
 
 	useEffect(() => {
-		getFloorplanObject(imageTest).then((floorplan) => {
-			setFloorplan(floorplan);
-			setCurrentProfile({
-				id: 1,
-				pixel_ratio: 50,
-				ceiling_height: 3,
-				coverage_area: { width: 6, length: 8.4 },
-			});
+		getFloorplanObject(imageTest).then((floorplanObj) => {
+			setFloorplan(floorplanObj);
+			setCurrentProfile(ca_profile);
 			setShells(shells_list);
 		});
-	}, []);
+	}, []); // eslint-disable-line 
 
 	return (
 		<div className="App">

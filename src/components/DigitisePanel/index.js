@@ -1,7 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { UncontrolledReactSVGPanZoom } from 'react-svg-pan-zoom';
-import { select, scaleLinear, scaleBand } from 'd3';
+import { select } from 'd3-selection';
+import { scaleBand, scaleLinear } from 'd3-scale';
 import simpleheat from '../../utils/simpleheat';
 import { generateHeatmaps, generateHeatpoints } from '../../utils/generateHeats';
 
@@ -97,10 +98,10 @@ function DigitisePanel({
 	}
 
 	function drawHeatpoints() {
-		let heatData = [];
+		const heatData = [];
 		heatpoints.forEach((heat) => {
 			const shell = shells.find((item) => item.id === heat.shell_id);
-			shell &&
+			if (shell) {
 				heatData.push(
 					...heat.heatpoints.map((point) =>
 						transformHeatpointsData(
@@ -111,6 +112,7 @@ function DigitisePanel({
 						)
 					)
 				);
+			}
 		});
 		heatpointsRef.current.data(heatData);
 		heatpointsRef.current.draw();
@@ -138,8 +140,8 @@ function DigitisePanel({
 	}
 
 	function transformHeatmapData(array, xLength, yLength) {
-		let data = [];
-		for (let i = 0; i < yLength; i++) {
+		const data = [];
+		for (let i = 0; i < yLength; i += 1) {
 			data.push(array.slice(i * xLength, i * xLength + xLength));
 		}
 		return data;
@@ -152,14 +154,16 @@ function DigitisePanel({
 			.join('g')
 			.attr('class', 'heatmaps_shell_group')
 			.attr('transform', ({ shell_id }) => {
-				const shell = shells.find((shell) => shell.id === shell_id);
-				if (!shell) return;
-				return `translate(${shell.coordinates[0] * floorplan.width} ${
-					shell.coordinates[1] * floorplan.height
-				}) rotate(${shell.coordinates[2]})`;
+				const shell = shells.find((item) => item.id === shell_id);
+				if (shell) {
+					return `translate(${shell.coordinates[0] * floorplan.width} ${
+						shell.coordinates[1] * floorplan.height
+					}) rotate(${shell.coordinates[2]})`;
+				}
+				return '';
 			})
-			.each(function ({ heatmaps }) {
-				const transformed = transformHeatmapData(heatmaps, 32, 24);
+			.each(function (data) {
+				const transformed = transformHeatmapData(data.heatmaps, 32, 24);
 				select(this)
 					.selectAll('.heat-cell-group')
 					.data(transformed)
@@ -221,7 +225,7 @@ function DigitisePanel({
 		} else {
 			select('#add_shells_group').selectAll('rect').remove();
 		}
-	}, [isAddingShell, currentShellCoordinates]);
+	}, [isAddingShell, currentShellCoordinates]); // eslint-disable-line
 
 	// GENERATE SURROUNDING SHELL ===================================================================/
 
@@ -272,7 +276,7 @@ function DigitisePanel({
 		} else {
 			select('#shells_surrounding_group').selectAll('.surrounding-shell-group').remove();
 		}
-	}, [shells, currentProfile, isAddingShell]);
+	}, [shells, currentProfile, isAddingShell]); // eslint-disable-line
 
 	// GENERATE SHELL ===================================================================/
 
@@ -325,7 +329,7 @@ function DigitisePanel({
 						.attr('y', ({ coordinates }) => coordinates[1] * floorplan.height)
 						.attr('width', 150)
 						.attr('height', 25)
-						.attr('fill', 'blue')
+						.attr('fill', 'blue');
 					group
 						.append('text')
 						.attr('class', 'title-shell')
@@ -345,7 +349,7 @@ function DigitisePanel({
 						})`
 				);
 		}
-	}, [shells, currentProfile]);
+	}, [shells, currentProfile]); // eslint-disable-line
 
 	// GENERATE HEATPOINTS ===================================================================/
 
@@ -402,7 +406,7 @@ function DigitisePanel({
 		if (!isShowHeatpoints && shells.length > 0 && heatpointsRef.current) {
 			removeDrawHeatpoints();
 		}
-	}, [isShowHeatpoints, shells, heatpoints]);
+	}, [isShowHeatpoints, shells, heatpoints]); // eslint-disable-line
 
 	// TOGGLE HEATMAPS ===================================================================/
 
@@ -417,7 +421,7 @@ function DigitisePanel({
 		if (!isShowHeatmaps && heatmapsRef.current) {
 			removeDrawHeatmaps();
 		}
-	}, [isShowHeatmaps, shells, heatmaps]);
+	}, [isShowHeatmaps, shells, heatmaps]); // eslint-disable-line
 
 	return (
 		<div className="digitise-panel" ref={SVGPanel}>
