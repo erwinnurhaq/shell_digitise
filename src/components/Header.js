@@ -2,7 +2,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Dropdown } from 'prospace-ui';
 
-function Header({ isShowHeatpoints, isShowHeatmaps, setIsShowHeatpoints, setIsShowHeatmaps, isAddingShell }) {
+function Header({
+	isShowHeatpoints,
+	isShowHeatmaps,
+	setIsShowHeatpoints,
+	setIsShowHeatmaps,
+	isAddingShell,
+	isEditingShell,
+}) {
 	return (
 		<div className="header">
 			<Dropdown value="" onChange={() => {}} isDisabled>
@@ -18,7 +25,7 @@ function Header({ isShowHeatpoints, isShowHeatmaps, setIsShowHeatpoints, setIsSh
 						setIsShowHeatpoints(ev.target.checked);
 						setIsShowHeatmaps(false);
 					}}
-					disabled={isAddingShell}
+					disabled={isAddingShell || isEditingShell}
 				/>
 			</div>
 			<div className="toggle-status-container">
@@ -30,7 +37,7 @@ function Header({ isShowHeatpoints, isShowHeatmaps, setIsShowHeatpoints, setIsSh
 						setIsShowHeatmaps(ev.target.checked);
 						setIsShowHeatpoints(false);
 					}}
-					disabled={isAddingShell}
+					disabled={isAddingShell || isEditingShell}
 				/>
 			</div>
 		</div>
@@ -42,7 +49,8 @@ Header.propTypes = {
 	isShowHeatmaps: PropTypes.bool.isRequired,
 	setIsShowHeatpoints: PropTypes.func.isRequired,
 	setIsShowHeatmaps: PropTypes.func.isRequired,
-	isAddingShell: PropTypes.bool.isRequired
+	isAddingShell: PropTypes.bool.isRequired,
+	isEditingShell: PropTypes.bool.isRequired,
 };
 
 export default Header;

@@ -12,9 +12,11 @@ function DigitisePanel({
 	isShowHeatmaps,
 	isShowHeatpoints,
 	currentProfile,
+	currentEditingShellId,
 	currentShellCoordinates,
 	setCurrentShellCoordinates,
 	isAddingShell,
+	isEditingShell,
 }) {
 	const [wrapperSize, setWrapperSize] = useState({ width: 1, height: 1 });
 	const [heatmaps, setHeatmaps] = useState([]);
@@ -48,7 +50,7 @@ function DigitisePanel({
 
 	function onSVGClick(e) {
 		setIsSurroundingClicked(false);
-		if (isAddingShell && !isSurroundingClicked) {
+		if ((isAddingShell || isEditingShell) && !isSurroundingClicked) {
 			setShellCoordinates(e.point.x, e.point.y, currentShellCoordinates[2]);
 		}
 	}
@@ -186,7 +188,171 @@ function DigitisePanel({
 		select('#heatmaps_group').selectAll('.heatmaps_shell_group').remove();
 	}
 
-	// AUTO RESIZE VIEWER =======================================================/
+	function generateShell() {
+		const shellsData = isEditingShell
+			? shells.filter((shell) => shell.id !== currentEditingShellId)
+			: shells;
+
+		// JOIN
+		const shellGroups = select('#shells_group').selectAll('.shell-group').data(shellsData);
+
+		// ENTER
+		const shellGroupsEnter = shellGroups.enter().append('g').attr('class', 'shell-group');
+		shellGroupsEnter.append('rect').attr('class', 'shell__rect-border');
+		shellGroupsEnter.append('rect').attr('class', 'shell__rect-title-background');
+		shellGroupsEnter.append('text').attr('class', 'shell__rect-title');
+
+		// UPDATE
+		shellGroups
+			.merge(shellGroupsEnter)
+			.attr(
+				'transform',
+				({ coordinates }) =>
+					`rotate(${coordinates[2]} ${coordinates[0] * floorplan.width} ${
+						coordinates[1] * floorplan.height
+					})`
+			);
+
+		shellGroups
+			.merge(shellGroupsEnter)
+			.select('.shell__rect-border')
+			.attr('x', ({ coordinates }) => coordinates[0] * floorplan.width)
+			.attr('y', ({ coordinates }) => coordinates[1] * floorplan.height)
+			.attr('width', currentProfile.coverage_area.length * currentProfile.pixel_ratio)
+			.attr('height', currentProfile.coverage_area.width * currentProfile.pixel_ratio)
+			.attr('fill', '#0000ff0d')
+			.attr('stroke', 'blue')
+			.attr('stroke-width', (8 * currentProfile.pixel_ratio) / 100)
+			.attr('data-tip', ({ id }) => `shell_rect_${id}`);
+
+		shellGroups
+			.merge(shellGroupsEnter)
+			.select('.shell__rect-title-background')
+			.attr('x', ({ coordinates }) => coordinates[0] * floorplan.width)
+			.attr('y', ({ coordinates }) => coordinates[1] * floorplan.height)
+			.attr('width', 150)
+			.attr('height', 25)
+			.attr('fill', 'blue');
+
+		shellGroups
+			.merge(shellGroupsEnter)
+			.select('.shell__rect-title')
+			.text(({ id, ts_id }) => `${id} / ${ts_id}`)
+			.attr('x', ({ coordinates }) => coordinates[0] * floorplan.width + 20)
+			.attr('y', ({ coordinates }) => coordinates[1] * floorplan.height + 20)
+			.attr('font-size', 20)
+			.attr('fill', 'white');
+
+		// EXIT
+		shellGroups.exit().remove();
+	}
+
+	function generateSurroundingShell() {
+		const shellsData = isEditingShell
+			? shells.filter((shell) => shell.id !== currentEditingShellId)
+			: shells;
+		const shellWidth = currentProfile.coverage_area.length * currentProfile.pixel_ratio;
+		const shellHeight = currentProfile.coverage_area.width * currentProfile.pixel_ratio;
+
+		select('#shells_surrounding_group')
+			.selectAll('.surrounding-shell-group')
+			.data(shellsData)
+			.join('g')
+			.attr('class', 'surrounding-shell-group')
+			.each(function ({ coordinates }) {
+				const basePoint = {
+					x: coordinates[0] * floorplan.width,
+					y: coordinates[1] * floorplan.height,
+				};
+				const rotation = `${coordinates[2]} ${basePoint.x} ${basePoint.y}`;
+				const surroundingRectCoordinates = [
+					[basePoint.x - shellWidth, basePoint.y - shellHeight],
+					[basePoint.x, basePoint.y - shellHeight],
+					[basePoint.x + shellWidth, basePoint.y - shellHeight],
+					[basePoint.x + shellWidth, basePoint.y],
+					[basePoint.x + shellWidth, basePoint.y + shellHeight],
+					[basePoint.x, basePoint.y + shellHeight],
+					[basePoint.x - shellWidth, basePoint.y + shellHeight],
+					[basePoint.x - shellWidth, basePoint.y],
+				];
+				select(this)
+					.selectAll('rect')
+					.data(surroundingRectCoordinates)
+					.join('rect')
+					.attr('x', (point) => point[0])
+					.attr('y', (point) => point[1])
+					.attr('width', shellWidth)
+					.attr('height', shellHeight)
+					.attr('transform', `rotate(${rotation})`)
+					.attr('fill', '#ffbf1000')
+					.on('mouseover', function () {
+						select(this).attr('fill', '#ffbf100d');
+					})
+					.on('mouseout', function () {
+						select(this).attr('fill', '#ffbf1000');
+					})
+					.on('click', (e) => onSetEdgePoint(e.currentTarget));
+			});
+	}
+
+	function removeSurroundingShell() {
+		select('#shells_surrounding_group').selectAll('.surrounding-shell-group').remove();
+	}
+
+	function generateWillAddShell() {
+		select('#add_shells_group')
+			.selectAll('rect')
+			.data([currentShellCoordinates])
+			.join('rect')
+			.attr('x', (coordinates) => coordinates[0] * floorplan.width)
+			.attr('y', (coordinates) => coordinates[1] * floorplan.height)
+			.attr('width', currentProfile.coverage_area.length * currentProfile.pixel_ratio)
+			.attr('height', currentProfile.coverage_area.width * currentProfile.pixel_ratio)
+			.attr(
+				'transform',
+				(coordinates) =>
+					`rotate(${coordinates[2]} ${coordinates[0] * floorplan.width} ${
+						coordinates[1] * floorplan.height
+					})`
+			)
+			.attr('fill', '#ffbf100d')
+			.attr('stroke', '#ffc110')
+			.attr('stroke-width', (8 * currentProfile.pixel_ratio) / 100);
+	}
+
+	function removeWillAddShell() {
+		select('#add_shells_group').selectAll('rect').remove();
+	}
+
+	function clearMockHeatpoints() {
+		clearInterval(mockHeatpointsInterval.current);
+		mockHeatpointsInterval.current = null;
+		setHeatpoints([]);
+	}
+
+	function generateMockHeatpoints() {
+		clearMockHeatpoints();
+		setHeatpoints(generateHeatpoints(shells.length));
+		mockHeatpointsInterval.current = setInterval(() => {
+			setHeatpoints(generateHeatpoints(shells.length));
+		}, 2000);
+	}
+
+	function clearMockHeatmaps() {
+		clearInterval(mockHeatmapsInterval.current);
+		mockHeatmapsInterval.current = null;
+		setHeatmaps([]);
+	}
+
+	function generateMockHeatmaps() {
+		clearMockHeatmaps() 
+		setHeatmaps(generateHeatmaps(shells.length));
+		mockHeatmapsInterval.current = setInterval(() => {
+			setHeatmaps(generateHeatmaps(shells.length));
+		}, 2000);
+	}
+
+	// AUTO RESIZE VIEWER ==================================/
 
 	useEffect(() => {
 		isComponentMounted.current = true;
@@ -197,203 +363,91 @@ function DigitisePanel({
 			isComponentMounted.current = false;
 			window.removeEventListener('resize', setViewerOnResize);
 		};
-	}, []);
+	}, []); // eslint-disable-line
 
-	// GENERATE WILL ADD SHELL ===================================================================/
-
-	useEffect(() => {
-		if (isAddingShell && currentShellCoordinates.length > 0) {
-			select('#add_shells_group')
-				.selectAll('rect')
-				.data([currentShellCoordinates])
-				.join('rect')
-				.attr('x', (coordinates) => coordinates[0] * floorplan.width)
-				.attr('y', (coordinates) => coordinates[1] * floorplan.height)
-				.attr('width', currentProfile.coverage_area.length * currentProfile.pixel_ratio)
-				.attr('height', currentProfile.coverage_area.width * currentProfile.pixel_ratio)
-				.attr(
-					'transform',
-					(coordinates) =>
-						`rotate(${coordinates[2]} ${coordinates[0] * floorplan.width} ${
-							coordinates[1] * floorplan.height
-						})`
-				)
-				.attr('fill', '#ffbf100d')
-				.attr('stroke', '#ffc110')
-				.attr('stroke-width', (8 * currentProfile.pixel_ratio) / 100);
-		} else {
-			select('#add_shells_group').selectAll('rect').remove();
-		}
-	}, [isAddingShell, currentShellCoordinates]); // eslint-disable-line
-
-	// GENERATE SURROUNDING SHELL ===================================================================/
+	// GENERATE WILL ADD SHELL ===============================/
 
 	useEffect(() => {
-		if (shells.length > 0 && currentProfile && isAddingShell) {
-			const shellWidth = currentProfile.coverage_area.length * currentProfile.pixel_ratio;
-			const shellHeight = currentProfile.coverage_area.width * currentProfile.pixel_ratio;
-
-			select('#shells_surrounding_group')
-				.selectAll('.surrounding-shell-group')
-				.data(shells)
-				.join('g')
-				.attr('class', 'surrounding-shell-group')
-				.each(function ({ coordinates }) {
-					const basePoint = {
-						x: coordinates[0] * floorplan.width,
-						y: coordinates[1] * floorplan.height,
-					};
-					const rotation = `${coordinates[2]} ${basePoint.x} ${basePoint.y}`;
-					const surroundingRectCoordinates = [
-						[basePoint.x - shellWidth, basePoint.y - shellHeight],
-						[basePoint.x, basePoint.y - shellHeight],
-						[basePoint.x + shellWidth, basePoint.y - shellHeight],
-						[basePoint.x + shellWidth, basePoint.y],
-						[basePoint.x + shellWidth, basePoint.y + shellHeight],
-						[basePoint.x, basePoint.y + shellHeight],
-						[basePoint.x - shellWidth, basePoint.y + shellHeight],
-						[basePoint.x - shellWidth, basePoint.y],
-					];
-					select(this)
-						.selectAll('rect')
-						.data(surroundingRectCoordinates)
-						.join('rect')
-						.attr('x', (point) => point[0])
-						.attr('y', (point) => point[1])
-						.attr('width', shellWidth)
-						.attr('height', shellHeight)
-						.attr('transform', `rotate(${rotation})`)
-						.attr('fill', '#ffbf1000')
-						.on('mouseover', function () {
-							select(this).attr('fill', '#ffbf100d');
-						})
-						.on('mouseout', function () {
-							select(this).attr('fill', '#ffbf1000');
-						})
-						.on('click', (e) => onSetEdgePoint(e.currentTarget));
-				});
+		if ((isAddingShell || isEditingShell) && currentShellCoordinates.length > 0) {
+			generateWillAddShell();
 		} else {
-			select('#shells_surrounding_group').selectAll('.surrounding-shell-group').remove();
+			removeWillAddShell();
 		}
-	}, [shells, currentProfile, isAddingShell]); // eslint-disable-line
+	}, [isAddingShell, currentShellCoordinates, isEditingShell]); // eslint-disable-line
 
-	// GENERATE SHELL ===================================================================/
+	// GENERATE SURROUNDING SHELL ============================/
 
+	useEffect(() => {
+		if (shells.length > 0 && currentProfile && (isAddingShell || isEditingShell)) {
+			generateSurroundingShell();
+		} else {
+			removeSurroundingShell();
+		}
+	}, [shells, currentProfile, isAddingShell, isEditingShell]); // eslint-disable-line
+
+	// GENERATE SHELL ==========================================/
+	// TODO =  DELETING SHELL
 	useEffect(() => {
 		if (shells.length > 0 && currentProfile) {
-			select('#shells_group')
-				.selectAll('.rect-shell-group')
-				.data(shells)
-				.join((enter) => {
-					const group = enter.append('g');
-					group
-						.append('rect')
-						.attr('class', 'rect-shell')
-						.attr('x', ({ coordinates }) => coordinates[0] * floorplan.width)
-						.attr('y', ({ coordinates }) => coordinates[1] * floorplan.height)
-						.attr('width', currentProfile.coverage_area.length * currentProfile.pixel_ratio)
-						.attr('height', currentProfile.coverage_area.width * currentProfile.pixel_ratio)
-						.attr('fill', '#0000ff0d')
-						.attr('stroke', 'blue')
-						.attr('stroke-width', (8 * currentProfile.pixel_ratio) / 100)
-						.attr('data-tip', ({ id }) => `shell_rect_${id}`);
-					group
-						.append('rect')
-						.attr('x', ({ coordinates }) => coordinates[0] * floorplan.width)
-						.attr('y', ({ coordinates }) => coordinates[1] * floorplan.height)
-						.attr('width', 150)
-						.attr('height', 25)
-						.attr('fill', 'blue');
-					group
-						.append('text')
-						.attr('class', 'title-shell')
-						.text(({ id, ts_id }) => ` ${id} / ${ts_id} `)
-						.attr('x', ({ coordinates }) => coordinates[0] * floorplan.width + 20)
-						.attr('y', ({ coordinates }) => coordinates[1] * floorplan.height + 20)
-						.attr('font-size', 20)
-						.attr('fill', 'white');
-					return group;
-				})
-				.attr('class', 'rect-shell-group')
-				.attr(
-					'transform',
-					({ coordinates }) =>
-						`rotate(${coordinates[2]} ${coordinates[0] * floorplan.width} ${
-							coordinates[1] * floorplan.height
-						})`
-				);
+			generateShell();
 		}
-	}, [shells, currentProfile]); // eslint-disable-line
+	}, [shells, currentProfile, isEditingShell]); // eslint-disable-line
 
-	// GENERATE HEATPOINTS ===================================================================/
+	// GENERATE HEATPOINTS ======================================/
 
 	useEffect(() => {
 		if (isShowHeatpoints) {
-			clearInterval(mockHeatpointsInterval.current);
-			mockHeatpointsInterval.current = null;
-			setHeatpoints(generateHeatpoints(shells.length));
-			mockHeatpointsInterval.current = setInterval(() => {
-				setHeatpoints(generateHeatpoints(shells.length));
-			}, 2000);
+			generateMockHeatpoints();
 		} else {
-			clearInterval(mockHeatpointsInterval.current);
-			mockHeatpointsInterval.current = null;
-			setHeatpoints([]);
+			clearMockHeatpoints();
 		}
 		return () => {
-			clearInterval(mockHeatpointsInterval.current);
-			mockHeatpointsInterval.current = null;
-			setHeatpoints([]);
+			clearMockHeatpoints();
 		};
-	}, [isShowHeatpoints, shells]);
+	}, [isShowHeatpoints, shells]); // eslint-disable-line
 
-	// GENERATE HEATMAPS ===================================================================/
+	// GENERATE HEATMAPS =========================================/
 
 	useEffect(() => {
 		if (isShowHeatmaps) {
-			clearInterval(mockHeatmapsInterval.current);
-			mockHeatmapsInterval.current = null;
-			setHeatmaps(generateHeatmaps(shells.length));
-			mockHeatmapsInterval.current = setInterval(() => {
-				setHeatmaps(generateHeatmaps(shells.length));
-			}, 2000);
+			generateMockHeatmaps();
 		} else {
-			clearInterval(mockHeatmapsInterval.current);
-			mockHeatmapsInterval.current = null;
+			clearMockHeatmaps();
 		}
 		return () => {
-			clearInterval(mockHeatmapsInterval.current);
-			mockHeatmapsInterval.current = null;
+			clearMockHeatmaps() 
 		};
-	}, [isShowHeatmaps, shells]);
+	}, [isShowHeatmaps, shells]); // eslint-disable-line
 
-	// TOGGLE HEATPOINTS ===================================================================/
+	// TOGGLE HEATPOINTS ===========================================/
 
 	useEffect(() => {
-		if (shells.length > 0 && !heatpointsRef.current) {
-			// assign heatpoints canvas once
-			assignHeatpoints();
-		}
-		if (isShowHeatpoints && shells.length > 0 && heatpointsRef.current) {
-			drawHeatpoints();
-		}
-		if (!isShowHeatpoints && shells.length > 0 && heatpointsRef.current) {
-			removeDrawHeatpoints();
+		if (shells.length > 0) {
+			if (!heatpointsRef.current) {
+				assignHeatpoints(); // assign heatpoints canvas once
+			}
+			if (isShowHeatpoints && heatpointsRef.current) {
+				drawHeatpoints();
+			}
+			if (!isShowHeatpoints && heatpointsRef.current) {
+				removeDrawHeatpoints();
+			}
 		}
 	}, [isShowHeatpoints, shells, heatpoints]); // eslint-disable-line
 
-	// TOGGLE HEATMAPS ===================================================================/
+	// TOGGLE HEATMAPS ===========================================/
 
 	useEffect(() => {
-		if (shells.length > 0 && !heatmapsRef.current) {
-			// assign heatmaps once
-			assignHeatmaps();
-		}
-		if (isShowHeatmaps && heatmapsRef.current) {
-			drawHeatmaps();
-		}
-		if (!isShowHeatmaps && heatmapsRef.current) {
-			removeDrawHeatmaps();
+		if (shells.length > 0) {
+			if (!heatmapsRef.current) {
+				assignHeatmaps(); // assign heatmaps once
+			}
+			if (isShowHeatmaps && heatmapsRef.current) {
+				drawHeatmaps();
+			}
+			if (!isShowHeatmaps && heatmapsRef.current) {
+				removeDrawHeatmaps();
+			}
 		}
 	}, [isShowHeatmaps, shells, heatmaps]); // eslint-disable-line
 
@@ -452,9 +506,11 @@ DigitisePanel.propTypes = {
 	isShowHeatmaps: PropTypes.bool.isRequired,
 	isShowHeatpoints: PropTypes.bool.isRequired,
 	currentProfile: PropTypes.objectOf(PropTypes.any).isRequired,
+	currentEditingShellId: PropTypes.number.isRequired,
 	currentShellCoordinates: PropTypes.arrayOf(PropTypes.number).isRequired,
 	setCurrentShellCoordinates: PropTypes.func.isRequired,
 	isAddingShell: PropTypes.bool.isRequired,
+	isEditingShell: PropTypes.bool.isRequired,
 };
 
 export default DigitisePanel;

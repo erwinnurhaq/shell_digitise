@@ -13,6 +13,7 @@ const MainContentTable = ({
 	setCurrentShellCoordinates,
 	setCurrentEditingShellId,
 	setIsEditingShell,
+	onSaveEdit,
 	onCancelEdit,
 }) => {
 	return (
@@ -42,7 +43,7 @@ const MainContentTable = ({
 											currentProfile={currentProfile}
 											currentShellCoordinates={currentShellCoordinates}
 											setCurrentShellCoordinates={setCurrentShellCoordinates}
-											onSave={() => {}}
+											onSave={onSaveEdit}
 											onCancel={onCancelEdit}
 										/>
 									</td>
@@ -124,6 +125,7 @@ MainContentTable.propTypes = {
 	setCurrentShellCoordinates: PropTypes.func.isRequired,
 	setCurrentEditingShellId: PropTypes.func.isRequired,
 	setIsEditingShell: PropTypes.func.isRequired,
+	onSaveEdit: PropTypes.func.isRequired,
 	onCancelEdit: PropTypes.func.isRequired,
 };
 

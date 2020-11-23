@@ -29,14 +29,20 @@ function App() {
 	const [isAddingShell, setIsAddingShell] = useState(false);
 	const [isEditingShell, setIsEditingShell] = useState(false);
 
-	function addShell({ ts_id, mac_address, version, location }) {
+	function checkShellCoordinatesRotation() {
 		if (currentShellCoordinates[2] < 0) {
 			currentShellCoordinates.splice(2, 1, currentShellCoordinates[2] + 360);
 		}
+	}
+
+	function addShell({ ts_id, mac_address, version, location }) {
+		checkShellCoordinatesRotation()
 		setShells([
 			...shells,
 			{
 				id: shells.map((shell) => shell.id).sort((a, b) => b - a)[0] + 1,
+				status: 'offline',
+				last_status_update_time: new Date().toISOString(),
 				coordinates: currentShellCoordinates,
 				ts_id,
 				mac_address,
@@ -48,12 +54,30 @@ function App() {
 		setIsAddingShell(false);
 	}
 
-	// TODO
-	function editShell() {
-		return null;
+	function editShell({ ts_id, mac_address, version, location }) {
+		checkShellCoordinatesRotation()
+		setShells(shells.map(shell => {
+			if(shell.id === currentEditingShellId){
+				return {
+					id: currentEditingShellId,
+					status: 'offline',
+					last_status_update_time: new Date().toISOString(),
+					coordinates: currentShellCoordinates,
+					ts_id,
+					mac_address,
+					version,
+					location,
+				}
+			}
+			return shell
+		}));
+		setCurrentShellCoordinates([]);
+		setCurrentEditingShellId(0)
+		setIsEditingShell(false)
 	}
 
 	// TODO
+	// eslint-disable-next-line
 	function deleteShell() {
 		return null;
 	}
@@ -71,7 +95,7 @@ function App() {
 			setCurrentProfile(ca_profile);
 			setShells(shells_list);
 		});
-	}, []); // eslint-disable-line 
+	}, []); // eslint-disable-line
 
 	return (
 		<div className="App">
@@ -81,6 +105,7 @@ function App() {
 				setIsShowHeatpoints={setIsShowHeatpoints}
 				setIsShowHeatmaps={setIsShowHeatmaps}
 				isAddingShell={isAddingShell}
+				isEditingShell={isEditingShell}
 			/>
 			<div className="main">
 				<div className="ui segment fluid container digitise-panel-content">
@@ -90,9 +115,11 @@ function App() {
 						isShowHeatmaps={isShowHeatmaps}
 						isShowHeatpoints={isShowHeatpoints}
 						currentProfile={currentProfile}
+						currentEditingShellId={currentEditingShellId}
 						currentShellCoordinates={currentShellCoordinates}
 						setCurrentShellCoordinates={setCurrentShellCoordinates}
 						isAddingShell={isAddingShell}
+						isEditingShell={isEditingShell}
 					/>
 				</div>
 				<div className="ui segment fluid container main-content">
@@ -112,7 +139,7 @@ function App() {
 							currentProfile={currentProfile}
 							currentShellCoordinates={currentShellCoordinates}
 							setCurrentShellCoordinates={setCurrentShellCoordinates}
-							onSave={(data) => addShell(data)}
+							onSave={addShell}
 							onCancel={cancelShellForm}
 						/>
 					)}
@@ -125,6 +152,7 @@ function App() {
 						setCurrentShellCoordinates={setCurrentShellCoordinates}
 						setCurrentEditingShellId={setCurrentEditingShellId}
 						setIsEditingShell={setIsEditingShell}
+						onSaveEdit={editShell}
 						onCancelEdit={cancelShellForm}
 					/>
 				</div>
