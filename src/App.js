@@ -7,6 +7,7 @@ import MainContentHeader from './components/MainContentHeader';
 import ShellForm from './components/ShellForm';
 import MainContentTable from './components/MainContentTable';
 import DigitisePanel from './components/DigitisePanel';
+import ConfirmModal from './components/ConfirmModal';
 
 function App() {
 	const [shells, setShells] = useState([]);
@@ -18,6 +19,7 @@ function App() {
 	});
 	const [currentShellCoordinates, setCurrentShellCoordinates] = useState([]);
 	const [currentEditingShellId, setCurrentEditingShellId] = useState(0);
+	const [currentDeletingShellId, setCurrentDeletingShellId] = useState(0);
 	const [floorplan, setFloorplan] = useState({
 		floorplan_url: '',
 		width: 1,
@@ -28,6 +30,7 @@ function App() {
 	const [isShowHeatmaps, setIsShowHeatmaps] = useState(false);
 	const [isAddingShell, setIsAddingShell] = useState(false);
 	const [isEditingShell, setIsEditingShell] = useState(false);
+	const [isShowDeleteModal, setIsShowDeleteModal] = useState(false);
 
 	function checkShellCoordinatesRotation() {
 		if (currentShellCoordinates[2] < 0) {
@@ -36,7 +39,7 @@ function App() {
 	}
 
 	function addShell({ ts_id, mac_address, version, location }) {
-		checkShellCoordinatesRotation()
+		checkShellCoordinatesRotation();
 		setShells([
 			...shells,
 			{
@@ -55,31 +58,33 @@ function App() {
 	}
 
 	function editShell({ ts_id, mac_address, version, location }) {
-		checkShellCoordinatesRotation()
-		setShells(shells.map(shell => {
-			if(shell.id === currentEditingShellId){
-				return {
-					id: currentEditingShellId,
-					status: 'offline',
-					last_status_update_time: new Date().toISOString(),
-					coordinates: currentShellCoordinates,
-					ts_id,
-					mac_address,
-					version,
-					location,
+		checkShellCoordinatesRotation();
+		setShells(
+			shells.map((shell) => {
+				if (shell.id === currentEditingShellId) {
+					return {
+						id: currentEditingShellId,
+						status: 'offline',
+						last_status_update_time: new Date().toISOString(),
+						coordinates: currentShellCoordinates,
+						ts_id,
+						mac_address,
+						version,
+						location,
+					};
 				}
-			}
-			return shell
-		}));
+				return shell;
+			})
+		);
 		setCurrentShellCoordinates([]);
-		setCurrentEditingShellId(0)
-		setIsEditingShell(false)
+		setCurrentEditingShellId(0);
+		setIsEditingShell(false);
 	}
 
-	// TODO
-	// eslint-disable-next-line
 	function deleteShell() {
-		return null;
+		setShells(shells.filter((shell) => shell.id !== currentDeletingShellId));
+		setCurrentDeletingShellId(0);
+		setIsShowDeleteModal(false);
 	}
 
 	function cancelShellForm() {
@@ -99,6 +104,21 @@ function App() {
 
 	return (
 		<div className="App">
+			{isShowDeleteModal && (
+				<ConfirmModal
+					isShow
+					title={`Are you sure you want to delete ${
+						shells.find((shell) => shell.id === currentDeletingShellId).ts_id
+					}?`}
+					infoPrefix="WARNING"
+					info="This cannot be undone"
+					onCancel={() => {
+						setCurrentDeletingShellId(0);
+						setIsShowDeleteModal(false);
+					}}
+					onYes={deleteShell}
+				/>
+			)}
 			<Header
 				isShowHeatpoints={isShowHeatpoints}
 				isShowHeatmaps={isShowHeatmaps}
@@ -148,10 +168,17 @@ function App() {
 						currentProfile={currentProfile}
 						currentEditingShellId={currentEditingShellId}
 						currentShellCoordinates={currentShellCoordinates}
-						isButtonDisabled={isAddingShell || isEditingShell}
 						setCurrentShellCoordinates={setCurrentShellCoordinates}
-						setCurrentEditingShellId={setCurrentEditingShellId}
-						setIsEditingShell={setIsEditingShell}
+						isButtonDisabled={isAddingShell || isEditingShell}
+						onDeleteClick={(id) => {
+							setCurrentDeletingShellId(id);
+							setIsShowDeleteModal(true);
+						}}
+						onEditClick={(id, coordinates) => {
+							setCurrentEditingShellId(id);
+							setCurrentShellCoordinates(coordinates);
+							setIsEditingShell(true);
+						}}
 						onSaveEdit={editShell}
 						onCancelEdit={cancelShellForm}
 					/>

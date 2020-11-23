@@ -1,0 +1,46 @@
+.confirm-modal-container {
+	position: fixed !important;
+}
+
+.content-wrapper {
+	width: 500px;
+	height: 350px;
+	display: grid;
+	padding: 20px !important;
+	border-radius: 0px !important;
+	-webkit-border-radius: 0px !important;
+	-moz-border-radius: 0px !important;
+	-ms-border-radius: 0px !important;
+	-o-border-radius: 0px !important;
+}
+
+.content-wrapper .close-button {
+	justify-self: flex-end;
+}
+
+.content-wrapper .close-button img {
+	width: 14px;
+	height: 14px;
+}
+
+.content-wrapper .close-button:hover {
+	cursor: pointer;
+}
+
+.content-wrapper h2 {
+	font-weight: 400;
+}
+
+.content-wrapper .info-box {
+	display: grid;
+	align-items: center;
+	margin: 0px auto;
+	height: 10px;
+	width: 300px;
+}
+
+.content-wrapper .button-container button {
+	width: 150px;
+	height: 40px;
+	margin: 20px;
+}

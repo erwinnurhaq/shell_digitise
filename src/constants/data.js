@@ -35,6 +35,16 @@ const shells_list = new Array(40).fill({}).map((item, idx) => ({
 // 		mac_address: '24:6F:28:3F:D4:C8',
 // 		version: '1.0',
 // 		location: '',
+// 	},
+// 	{
+// 		id: 3,
+// 		status: 'offline',
+// 		last_status_update_time: '2020-10-16T18:54:09.729Z',
+// 		coordinates: [0.7, 0.7, 0],
+// 		ts_id: `TS0003`,
+// 		mac_address: '24:6F:28:3F:D4:C8',
+// 		version: '1.0',
+// 		location: '',
 // 	}
 // ]
 

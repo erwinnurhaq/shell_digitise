@@ -4,7 +4,7 @@ import { UncontrolledReactSVGPanZoom } from 'react-svg-pan-zoom';
 import { select } from 'd3-selection';
 import { scaleBand, scaleLinear } from 'd3-scale';
 import simpleheat from '../../utils/simpleheat';
-import { generateHeatmaps, generateHeatpoints } from '../../utils/generateHeats';
+import { generateMockHeatmaps, generateMockHeatpoints } from '../../utils/generateHeats';
 
 function DigitisePanel({
 	shells,
@@ -330,11 +330,11 @@ function DigitisePanel({
 		setHeatpoints([]);
 	}
 
-	function generateMockHeatpoints() {
+	function getMockHeatpoints() {
 		clearMockHeatpoints();
-		setHeatpoints(generateHeatpoints(shells.length));
+		setHeatpoints(generateMockHeatpoints(shells));
 		mockHeatpointsInterval.current = setInterval(() => {
-			setHeatpoints(generateHeatpoints(shells.length));
+			setHeatpoints(generateMockHeatpoints(shells));
 		}, 2000);
 	}
 
@@ -344,11 +344,11 @@ function DigitisePanel({
 		setHeatmaps([]);
 	}
 
-	function generateMockHeatmaps() {
-		clearMockHeatmaps() 
-		setHeatmaps(generateHeatmaps(shells.length));
+	function getMockHeatmaps() {
+		clearMockHeatmaps();
+		setHeatmaps(generateMockHeatmaps(shells));
 		mockHeatmapsInterval.current = setInterval(() => {
-			setHeatmaps(generateHeatmaps(shells.length));
+			setHeatmaps(generateMockHeatmaps(shells));
 		}, 2000);
 	}
 
@@ -393,11 +393,11 @@ function DigitisePanel({
 		}
 	}, [shells, currentProfile, isEditingShell]); // eslint-disable-line
 
-	// GENERATE HEATPOINTS ======================================/
+	// GENERATE MOCK HEATPOINTS ======================================/
 
 	useEffect(() => {
 		if (isShowHeatpoints) {
-			generateMockHeatpoints();
+			getMockHeatpoints();
 		} else {
 			clearMockHeatpoints();
 		}
@@ -406,16 +406,16 @@ function DigitisePanel({
 		};
 	}, [isShowHeatpoints, shells]); // eslint-disable-line
 
-	// GENERATE HEATMAPS =========================================/
+	// GENERATE MOCK HEATMAPS =========================================/
 
 	useEffect(() => {
 		if (isShowHeatmaps) {
-			generateMockHeatmaps();
+			getMockHeatmaps();
 		} else {
 			clearMockHeatmaps();
 		}
 		return () => {
-			clearMockHeatmaps() 
+			clearMockHeatmaps();
 		};
 	}, [isShowHeatmaps, shells]); // eslint-disable-line
 

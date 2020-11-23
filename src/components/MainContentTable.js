@@ -9,10 +9,10 @@ const MainContentTable = ({
 	currentProfile,
 	currentEditingShellId,
 	currentShellCoordinates,
-	isButtonDisabled,
 	setCurrentShellCoordinates,
-	setCurrentEditingShellId,
-	setIsEditingShell,
+	isButtonDisabled,
+	onDeleteClick,
+	onEditClick,
 	onSaveEdit,
 	onCancelEdit,
 }) => {
@@ -78,7 +78,7 @@ const MainContentTable = ({
 										testId={`main-table__delete-button-${item.id}`}
 										type="tertiary"
 										className="delete-button"
-										onClick={() => {}}
+										onClick={() => onDeleteClick(item.id)}
 										disabledFuncCondition={isButtonDisabled}
 										disabledStyleCondition={isButtonDisabled}
 									>
@@ -87,11 +87,7 @@ const MainContentTable = ({
 									<Button
 										testId={`main-table__edit-button-${item.id}`}
 										type="secondary"
-										onClick={() => {
-                      setCurrentEditingShellId(item.id)
-                      setCurrentShellCoordinates(item.coordinates);
-                      setIsEditingShell(true)
-                    }}
+										onClick={() => onEditClick(item.id, item.coordinates)}
 										disabledFuncCondition={isButtonDisabled}
 										disabledStyleCondition={isButtonDisabled}
 									>
@@ -117,14 +113,14 @@ const MainContentTable = ({
 };
 
 MainContentTable.propTypes = {
-	items: PropTypes.arrayOf(PropTypes.object).isRequired,
+	items : PropTypes.arrayOf(PropTypes.object).isRequired,
 	currentProfile: PropTypes.objectOf(PropTypes.any).isRequired,
 	currentEditingShellId: PropTypes.number.isRequired,
 	currentShellCoordinates: PropTypes.arrayOf(PropTypes.number).isRequired,
-	isButtonDisabled: PropTypes.bool.isRequired,
 	setCurrentShellCoordinates: PropTypes.func.isRequired,
-	setCurrentEditingShellId: PropTypes.func.isRequired,
-	setIsEditingShell: PropTypes.func.isRequired,
+	isButtonDisabled: PropTypes.bool.isRequired,
+	onDeleteClick: PropTypes.func.isRequired,
+	onEditClick: PropTypes.func.isRequired,
 	onSaveEdit: PropTypes.func.isRequired,
 	onCancelEdit: PropTypes.func.isRequired,
 };
