@@ -3,9 +3,9 @@ import { ca_profile, shells_list } from './constants/data';
 import imageTest from './assets/Test_A2_1-200(3).png';
 import getFloorplanObject from './utils/getFloorplanObject';
 import Header from './components/Header';
-import MainContentHeader from './components/MainContentHeader';
 import ShellForm from './components/ShellForm';
-import MainContentTable from './components/MainContentTable';
+import ShellHeader from './components/ShellHeader';
+import ShellTable from './components/ShellTable';
 import DigitisePanel from './components/DigitisePanel';
 import ConfirmModal from './components/ConfirmModal';
 
@@ -103,7 +103,7 @@ function App() {
 	}, []); // eslint-disable-line
 
 	return (
-		<div className="App">
+		<div className="ts-container">
 			{isShowDeleteModal && (
 				<ConfirmModal
 					isShow
@@ -127,8 +127,8 @@ function App() {
 				isAddingShell={isAddingShell}
 				isEditingShell={isEditingShell}
 			/>
-			<div className="main">
-				<div className="ui segment fluid container digitise-panel-content">
+			<div className="ts-content">
+				<div className="ui segment fluid container digitise-panel-section">
 					<DigitisePanel
 						shells={shells}
 						floorplan={floorplan}
@@ -142,8 +142,8 @@ function App() {
 						isEditingShell={isEditingShell}
 					/>
 				</div>
-				<div className="ui segment fluid container main-content">
-					<MainContentHeader
+				<div className="ui segment fluid container shell-section">
+					<ShellHeader
 						shells={shells}
 						isButtonDisabled={isAddingShell || isEditingShell}
 						isAddingShell={isAddingShell}
@@ -163,7 +163,7 @@ function App() {
 							onCancel={cancelShellForm}
 						/>
 					)}
-					<MainContentTable
+					<ShellTable
 						items={shells}
 						currentProfile={currentProfile}
 						currentEditingShellId={currentEditingShellId}

@@ -11,7 +11,7 @@ function Header({
 	isEditingShell,
 }) {
 	return (
-		<div className="header">
+		<div className="ts-header">
 			<Dropdown value="" onChange={() => {}} isDisabled>
 				<option value="">Select Floor</option>
 				<option value=""></option>

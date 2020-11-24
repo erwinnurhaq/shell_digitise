@@ -59,7 +59,7 @@ function ShellForm({
 	}, []); // eslint-disable-line 
 
 	return (
-		<div className="main-content__form-container">
+		<div className="shell-section__form-container">
 			<div className="form-content">
 				<div className="form-content__col">
 					<div className="form-content__row title">

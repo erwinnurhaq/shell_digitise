@@ -4,7 +4,7 @@ import { format } from 'timeago.js';
 import { Button } from 'prospace-ui';
 import ShellForm from './ShellForm';
 
-const MainContentTable = ({
+function ShellTable({
 	items,
 	currentProfile,
 	currentEditingShellId,
@@ -15,9 +15,9 @@ const MainContentTable = ({
 	onEditClick,
 	onSaveEdit,
 	onCancelEdit,
-}) => {
+}) {
 	return (
-		<div className="main-content__table">
+		<div className="shell-section__table">
 			<table className="ui compact table">
 				<thead>
 					<tr>
@@ -110,10 +110,10 @@ const MainContentTable = ({
 			</table>
 		</div>
 	);
-};
+}
 
-MainContentTable.propTypes = {
-	items : PropTypes.arrayOf(PropTypes.object).isRequired,
+ShellTable.propTypes = {
+	items: PropTypes.arrayOf(PropTypes.object).isRequired,
 	currentProfile: PropTypes.objectOf(PropTypes.any).isRequired,
 	currentEditingShellId: PropTypes.number.isRequired,
 	currentShellCoordinates: PropTypes.arrayOf(PropTypes.number).isRequired,
@@ -125,4 +125,4 @@ MainContentTable.propTypes = {
 	onCancelEdit: PropTypes.func.isRequired,
 };
 
-export default MainContentTable;
+export default ShellTable;

@@ -2,15 +2,15 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Button, Dropdown } from 'prospace-ui';
 
-function MainContentHeader({
+function ShellHeader({
 	shells,
   isAddingShell,
   setIsAddingShell,
 	isButtonDisabled,
 }) {
 	return (
-		<div className="main-content__header-container">
-			<div className="main-content__header">
+		<div className="shell-section__header-container">
+			<div className="shell-section__header">
 				<div className="section-content">
 					<Button
 						disabledFuncCondition={isButtonDisabled}
@@ -35,7 +35,7 @@ function MainContentHeader({
 				</div>
 			</div>
 			{!isAddingShell && (
-				<div className="main-content__header">
+				<div className="shell-section__header">
 					<div className="section-content">
 						Total shells on this floor: <strong>{shells.length}</strong>
 					</div>
@@ -54,11 +54,11 @@ function MainContentHeader({
 	);
 }
 
-MainContentHeader.propTypes = {
+ShellHeader.propTypes = {
 	shells: PropTypes.arrayOf(PropTypes.object).isRequired,
 	isAddingShell: PropTypes.bool.isRequired,
 	isButtonDisabled: PropTypes.bool.isRequired,
   setIsAddingShell: PropTypes.func.isRequired,
 };
 
-export default MainContentHeader;
+export default ShellHeader;
