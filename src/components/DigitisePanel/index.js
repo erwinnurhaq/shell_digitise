@@ -74,7 +74,7 @@ function DigitisePanel({
 	}
 
 	function assignHeatpoints() {
-		heatpointsRef.current = simpleheat(`heatpoints_canvas`);
+		heatpointsRef.current = simpleheat(`heat_canvas`);
 		heatpointsRef.current.max(1);
 		heatpointsRef.current.radius(
 			40 * (currentProfile.pixel_ratio / 100),
@@ -127,6 +127,21 @@ function DigitisePanel({
 
 	function assignHeatmaps() {
 		heatmapsRef.current = {};
+		heatmapsRef.current.mainCanvas = select('#heat_canvas');
+		heatmapsRef.current.hiddenCanvas = select('#heat_canvas_hidden');
+		heatmapsRef.current.nextCol = 1;
+		heatmapsRef.current.genColor = function () {
+			const ret = [];
+			if (this.nextCol < 16777215) {
+				ret.push(this.nextCol & 0xff); // R
+				ret.push((this.nextCol & 0xff00) >> 8); // G
+				ret.push((this.nextCol & 0xff0000) >> 16); // B
+
+				this.nextCol += 1;
+			}
+			return 'rgb(' + ret.join(',') + ')';
+		};
+		heatmapsRef.current.genColor();
 		heatmapsRef.current.colors = scaleLinear()
 			.domain([23, 32])
 			.range(['rgba(255, 238, 0, 0.1)', 'rgba(255, 68, 0, 0.6)'])
@@ -139,6 +154,14 @@ function DigitisePanel({
 		heatmapsRef.current.yAxis = scaleBand()
 			.domain([...Array(24).keys()])
 			.range([0, currentProfile.coverage_area.width * currentProfile.pixel_ratio]);
+
+		// BIND DATA TO CUSTOM ELEMENT
+		const customBase = document.createElement('custom');
+		const custom = select(customBase);
+
+		heatmapsRef.current.databind = function (data) {
+			const join = custom.selectAll('custom.rect').data(data);
+		};
 	}
 
 	function transformHeatmapData(array, xLength, yLength) {
@@ -150,42 +173,56 @@ function DigitisePanel({
 	}
 
 	function drawHeatmaps() {
-		select('#heatmaps_group')
-			.selectAll('.heatmaps_shell_group')
-			.data(heatmaps)
-			.join('g')
-			.attr('class', 'heatmaps_shell_group')
-			.each(function (data) {
-				select(this)
-					.selectAll('.heat-cell-group')
-					.data(transformHeatmapData(data.heatmaps, 32, 24))
-					.join('g')
-					.attr('class', 'heat-cell-group')
-					.each(function (d, i) {
-						select(this)
-							.selectAll('rect')
-							.data(d)
-							.join('rect')
-							.attr('x', (col, colIndex) => heatmapsRef.current.xAxis(colIndex))
-							.attr('y', () => heatmapsRef.current.yAxis(i))
-							.attr('width', heatmapsRef.current.xAxis.bandwidth())
-							.attr('height', heatmapsRef.current.yAxis.bandwidth())
-							.style('fill', (val) => heatmapsRef.current.colors(val));
-					});
-			})
-			.attr('transform', ({ shell_id }) => {
-				const shell = shells.find((item) => item.id === shell_id);
-				if (shell) {
-					return `translate(${shell.coordinates[0] * floorplan.width} ${
-						shell.coordinates[1] * floorplan.height
-					}) rotate(${shell.coordinates[2]})`;
-				}
-				return '';
-			});
+		const data = []
+		const cellWidth = heatmapsRef.current.xAxis.bandwidth()
+		const cellHeight = heatmapsRef.current.yAxis.bandwidth()
+
+		heatmaps.forEach((item) =>  {
+			const currentShell = shells.find(shell => shell.id === item.shell_id)
+			if(currentShell){
+				const heatdata = transformHeatmapData(item.heatmaps, 32, 24)
+				heatdata.forEach((heatRow, rowIndex) => {
+					heatRow.forEach((heat, heatIdx) => {
+						data.push({
+							x: heatmapsRef.current.xAxis(heatIdx),
+							y: heatmapsRef.current.yAxis(rowIndex),
+							width: cellWidth,
+							height: cellHeight,
+							fill: heatmapsRef.current.colors(heat),
+							value: heat,
+							baseCoordinate: currentShell.coordinates
+						})
+					})
+				})
+			}
+		})
+		
+		// JOIN
+		const join = select('#heatmaps_group').selectAll('.heatmaps_rect').data(data)
+
+		// ENTER
+		const enterSel = join.enter().append('rect').attr('class', 'heatmaps_rect')
+		
+		join.merge(enterSel)
+		.attr('x', ({x}) => x)
+		.attr('y', ({y}) => y)
+		.attr('width', ({width}) => width)
+		.attr('height', ({height}) => height)
+		.attr('fill', ({fill}) => fill)
+		.attr(
+			'transform',
+			({ baseCoordinate }) =>
+				`translate(${baseCoordinate[0] * floorplan.width} ${
+					baseCoordinate[1] * floorplan.height
+				}) rotate(${baseCoordinate[2]})`
+		)
+
+		join.exit().remove();
+
 	}
 
 	function removeDrawHeatmaps() {
-		select('#heatmaps_group').selectAll('.heatmaps_shell_group').remove();
+		select('#heatmaps_group').selectAll('.heatmaps_rect').remove();
 	}
 
 	function generateShell() {
@@ -486,8 +523,10 @@ function DigitisePanel({
 						height={floorplan.height}
 						xlinkHref={floorplan.floorplan_url}
 					/>
+					<rect x="0" y="0" width="100" height="100" transform="translate(3399.2 1968.3999999999999) rotate(0 3399.2 1968.3999999999999)" />
 					<foreignObject width={floorplan.width} height={floorplan.height}>
-						<canvas id="heatpoints_canvas" width={floorplan.width} height={floorplan.height} />
+						<canvas id="heat_canvas" width={floorplan.width} height={floorplan.height} />
+						<canvas id="heat_canvas_hidden" width={floorplan.width} height={floorplan.height} />
 					</foreignObject>
 					<g id="heatmaps_group" />
 					<g id="shells_surrounding_group" />
