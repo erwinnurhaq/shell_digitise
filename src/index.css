@@ -205,6 +205,40 @@ input {
 	margin-top: 20px;
 }
 
+.shell-section__table table {
+	border: 0px !important;
+	border-radius: 0px !important;
+	-webkit-border-radius: 0px !important;
+	-moz-border-radius: 0px !important;
+	-ms-border-radius: 0px !important;
+	-o-border-radius: 0px !important;
+}
+
+.shell-section__table table thead tr th {
+	background-color: #f2f2f2 !important;
+	font-weight: normal !important;
+	border-bottom: 0px !important;
+}
+
+.shell-section__table table thead tr th .th-button {
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	user-select: none;
+	outline: none;
+}
+
+.shell-section__table table thead tr th .th-button .th-button-icon {
+	display: flex;
+	flex-direction: column;
+	margin-top: -7px;
+	margin-left: 5px;
+}
+
+.shell-section__table table thead tr th .th-button .th-button-icon i.caret.down {
+	margin-top: -5px;
+}
+
 .shell-section__table table .button {
 	width: 420px;
 	text-align: right;
@@ -225,4 +259,72 @@ input {
 
 .shell-section__table table .button .delete-button:hover {
 	color: rgb(161, 53, 53) !important;
+}
+
+.shell-section__table table .table-empty-data {
+	height: 400px;
+	display: flex;
+	justify-content: center;
+	flex-direction: column;
+	align-items: center;
+}
+
+.shell-section__table .pagination-container {
+	width: 100%;
+	margin-top: 40px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.shell-section__table .pagination-container .pagination__limiter-container {
+	display: flex;
+	align-items: center;
+}
+
+.shell-section__table .pagination-container .pagination__limiter-container h4 {
+	font-weight: 400;
+	margin: 0;
+	padding-right: 15px;
+}
+
+.shell-section__table .pagination-container .pagination__limiter-container .pagination__limiter,
+.shell-section__table
+	.pagination-container
+	.pagination__limiter-container
+	.pagination__limiter
+	select {
+	width: 60px;
+}
+
+.shell-section__table .pagination-container .pagination__nav {
+	display: flex;
+	align-items: center;
+	height: 100%;
+}
+
+.shell-section__table .pagination-container .pagination__nav .pagination__info {
+	padding-right: 20px;
+}
+
+.shell-section__table .pagination-container .pagination__nav .square-pagination-button,
+.shell-section__table .pagination-container .pagination__nav .disabled-square-pagination-button {
+	outline: 1px solid #f2f2f2 !important;
+	background: none;
+	border: none;
+	width: 38px;
+	height: 38px;
+	display: grid;
+	place-content: center;
+	margin: 0 2px;
+}
+
+.shell-section__table .pagination-container .pagination__nav .disabled-square-pagination-button i {
+	margin: 0;
+}
+
+.shell-section__table .pagination-container .pagination__nav .square-pagination-button:hover {
+	cursor: pointer;
+	background-color: #fbbd08 !important;
+	color: white;
 }

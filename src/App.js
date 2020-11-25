@@ -25,12 +25,15 @@ function App() {
 		width: 1,
 		height: 1,
 	});
+	const [searchKeyword, setSearchKeyword] = useState('')
+	const [filter, setFilter] = useState('')
 
 	const [isShowHeatpoints, setIsShowHeatpoints] = useState(false);
 	const [isShowHeatmaps, setIsShowHeatmaps] = useState(false);
 	const [isAddingShell, setIsAddingShell] = useState(false);
 	const [isEditingShell, setIsEditingShell] = useState(false);
 	const [isShowDeleteModal, setIsShowDeleteModal] = useState(false);
+	const [isLoading, setIsLoading] = useState(false)
 
 	function checkShellCoordinatesRotation() {
 		if (currentShellCoordinates[2] < 0) {
@@ -94,11 +97,32 @@ function App() {
 		setIsEditingShell(false);
 	}
 
+	function onAddShellButtonClick() {
+		setIsAddingShell(true);
+		setIsShowHeatmaps(false);
+		setIsShowHeatpoints(false);
+	}
+
+	function onDeleteShellButtonClick(id) {
+		setCurrentDeletingShellId(id);
+		setIsShowDeleteModal(true);
+	}
+
+	function onEditShellButtonClick(id, coordinates){
+		setCurrentEditingShellId(id);
+		setCurrentShellCoordinates(coordinates);
+		setIsEditingShell(true);
+		setIsShowHeatmaps(false);
+		setIsShowHeatpoints(false);
+	}
+
 	useEffect(() => {
+		setIsLoading(true)
 		getFloorplanObject(imageTest).then((floorplanObj) => {
 			setFloorplan(floorplanObj);
 			setCurrentProfile(ca_profile);
 			setShells(shells_list);
+			setIsLoading(false)
 		});
 	}, []); // eslint-disable-line
 
@@ -144,14 +168,14 @@ function App() {
 				</div>
 				<div className="ui segment fluid container shell-section">
 					<ShellHeader
-						shells={shells}
+						shellsCount={shells.length}
+						searchKeyword={searchKeyword}
+						setSearchKeyword={setSearchKeyword}
+						filter={filter}
+						setFilter={setFilter}
 						isButtonDisabled={isAddingShell || isEditingShell}
 						isAddingShell={isAddingShell}
-						setIsAddingShell={(val) => {
-							setIsAddingShell(val);
-							setIsShowHeatmaps(false);
-							setIsShowHeatpoints(false);
-						}}
+						setIsAddingShell={onAddShellButtonClick}
 					/>
 					{isAddingShell && (
 						<ShellForm
@@ -164,21 +188,17 @@ function App() {
 						/>
 					)}
 					<ShellTable
-						items={shells}
+						isLoading={isLoading}
+						shells={shells}
+						searchKeyword={searchKeyword}
+						filter={filter}
 						currentProfile={currentProfile}
 						currentEditingShellId={currentEditingShellId}
 						currentShellCoordinates={currentShellCoordinates}
 						setCurrentShellCoordinates={setCurrentShellCoordinates}
 						isButtonDisabled={isAddingShell || isEditingShell}
-						onDeleteClick={(id) => {
-							setCurrentDeletingShellId(id);
-							setIsShowDeleteModal(true);
-						}}
-						onEditClick={(id, coordinates) => {
-							setCurrentEditingShellId(id);
-							setCurrentShellCoordinates(coordinates);
-							setIsEditingShell(true);
-						}}
+						onDeleteClick={onDeleteShellButtonClick}
+						onEditClick={onEditShellButtonClick}
 						onSaveEdit={editShell}
 						onCancelEdit={cancelShellForm}
 					/>

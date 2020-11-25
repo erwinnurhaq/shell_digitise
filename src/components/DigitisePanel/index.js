@@ -483,11 +483,7 @@ function DigitisePanel({
 						height={floorplan.height}
 						xlinkHref={floorplan.floorplan_url}
 					/>
-					<foreignObject
-						width={floorplan.width}
-						height={floorplan.height}
-						style={{ position: 'relative' }}
-					>
+					<foreignObject width={floorplan.width} height={floorplan.height}>
 						<canvas id="heatpoints_canvas" width={floorplan.width} height={floorplan.height} />
 					</foreignObject>
 					<g id="heatmaps_group" />
