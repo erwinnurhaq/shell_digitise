@@ -14,11 +14,12 @@ const collator = new Intl.Collator(undefined, {
 
 function ShellTable({
 	isLoading,
+	isEditingShell,
 	shells,
 	searchKeyword,
 	filter,
 	currentProfile,
-	currentEditingShellId,
+	currentShellId,
 	currentShellCoordinates,
 	setCurrentShellCoordinates,
 	isButtonDisabled,
@@ -26,6 +27,7 @@ function ShellTable({
 	onEditClick,
 	onSaveEdit,
 	onCancelEdit,
+	onLocateClick,
 }) {
 	const [items, setItems] = useState([]);
 	const [order, setOrder] = useState('asc');
@@ -110,7 +112,7 @@ function ShellTable({
 							.sort(sortShell[sort])
 							.slice(offset, offset + limit)
 							.map((item) => {
-								if (item.id === currentEditingShellId) {
+								if (isEditingShell && item.id === currentShellId) {
 									return (
 										<tr data-testid={`shell-table__container-${item.id}`} key={item.id}>
 											<td colSpan={8} style={{ padding: 0 }}>
@@ -129,7 +131,13 @@ function ShellTable({
 									);
 								}
 								return (
-									<tr data-testid={`shell-table__container-${item.id}`} key={item.id}>
+									<tr
+										data-testid={`shell-table__container-${item.id}`}
+										key={item.id}
+										className={
+											!isEditingShell && item.id === currentShellId ? 'shell-row-selected' : ''
+										}
+									>
 										<td
 											data-testid={`shell-table__shell-id-column-${item.id}`}
 											className="shell-id"
@@ -191,9 +199,9 @@ function ShellTable({
 											<Button
 												testId={`shell-table__view-button-${item.id}`}
 												type="secondary"
-												onClick={() => {}}
-												disabledFuncCondition={isButtonDisabled}
-												disabledStyleCondition={isButtonDisabled}
+												onClick={() => onLocateClick(item.id)}
+												disabledFuncCondition={isButtonDisabled || item.id === currentShellId}
+												disabledStyleCondition={isButtonDisabled || item.id === currentShellId}
 											>
 												LOCATE
 											</Button>
@@ -217,11 +225,12 @@ function ShellTable({
 
 ShellTable.propTypes = {
 	isLoading: PropTypes.bool.isRequired,
+	isEditingShell: PropTypes.bool.isRequired,
 	shells: PropTypes.arrayOf(PropTypes.object).isRequired,
 	searchKeyword: PropTypes.string,
 	filter: PropTypes.string,
 	currentProfile: PropTypes.objectOf(PropTypes.any).isRequired,
-	currentEditingShellId: PropTypes.number.isRequired,
+	currentShellId: PropTypes.number.isRequired,
 	currentShellCoordinates: PropTypes.arrayOf(PropTypes.number).isRequired,
 	setCurrentShellCoordinates: PropTypes.func.isRequired,
 	isButtonDisabled: PropTypes.bool.isRequired,
@@ -229,6 +238,7 @@ ShellTable.propTypes = {
 	onEditClick: PropTypes.func.isRequired,
 	onSaveEdit: PropTypes.func.isRequired,
 	onCancelEdit: PropTypes.func.isRequired,
+	onLocateClick: PropTypes.func.isRequired,
 };
 
 ShellTable.defaultProps = {

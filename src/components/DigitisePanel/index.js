@@ -12,7 +12,7 @@ function DigitisePanel({
 	isShowHeatmaps,
 	isShowHeatpoints,
 	currentProfile,
-	currentEditingShellId,
+	currentShellId,
 	currentShellCoordinates,
 	setCurrentShellCoordinates,
 	isAddingShell,
@@ -190,7 +190,7 @@ function DigitisePanel({
 
 	function generateShell() {
 		const shellsData = isEditingShell
-			? shells.filter((shell) => shell.id !== currentEditingShellId)
+			? shells.filter((shell) => shell.id !== currentShellId)
 			: shells;
 
 		// JOIN
@@ -220,9 +220,12 @@ function DigitisePanel({
 			.attr('y', ({ coordinates }) => coordinates[1] * floorplan.height)
 			.attr('width', currentProfile.coverage_area.length * currentProfile.pixel_ratio)
 			.attr('height', currentProfile.coverage_area.width * currentProfile.pixel_ratio)
-			.attr('fill', '#0000ff0d')
-			.attr('stroke', 'blue')
-			.attr('stroke-width', (8 * currentProfile.pixel_ratio) / 100)
+			.attr('fill', ({ id }) => (id === currentShellId ? '#0000ff33' : '#ff000003'))
+			.attr('stroke', ({ id }) => (id === currentShellId ? 'blue' : 'red'))
+			.attr(
+				'stroke-width',
+				({ id }) => ((id === currentShellId ? 24 : 8) * currentProfile.pixel_ratio) / 100
+			)
 			.attr('data-tip', ({ id }) => `shell_rect_${id}`);
 
 		shellGroups
@@ -232,7 +235,7 @@ function DigitisePanel({
 			.attr('y', ({ coordinates }) => coordinates[1] * floorplan.height)
 			.attr('width', 150)
 			.attr('height', 25)
-			.attr('fill', 'blue');
+			.attr('fill', ({ id }) => (id === currentShellId ? 'blue' : 'red'));
 
 		shellGroups
 			.merge(shellGroupsEnter)
@@ -249,7 +252,7 @@ function DigitisePanel({
 
 	function generateSurroundingShell() {
 		const shellsData = isEditingShell
-			? shells.filter((shell) => shell.id !== currentEditingShellId)
+			? shells.filter((shell) => shell.id !== currentShellId)
 			: shells;
 		const shellWidth = currentProfile.coverage_area.length * currentProfile.pixel_ratio;
 		const shellHeight = currentProfile.coverage_area.width * currentProfile.pixel_ratio;
@@ -284,12 +287,12 @@ function DigitisePanel({
 					.attr('width', shellWidth)
 					.attr('height', shellHeight)
 					.attr('transform', `rotate(${rotation})`)
-					.attr('fill', '#ffbf1000')
+					.attr('fill', '#0000ff00')
 					.on('mouseover', function () {
-						select(this).attr('fill', '#ffbf100d');
+						select(this).attr('fill', '#0000ff1a');
 					})
 					.on('mouseout', function () {
-						select(this).attr('fill', '#ffbf1000');
+						select(this).attr('fill', '#0000ff00');
 					})
 					.on('click', (e) => onSetEdgePoint(e.currentTarget));
 			});
@@ -315,8 +318,8 @@ function DigitisePanel({
 						coordinates[1] * floorplan.height
 					})`
 			)
-			.attr('fill', '#ffbf100d')
-			.attr('stroke', '#ffc110')
+			.attr('fill', '#0000ff03')
+			.attr('stroke', 'blue')
 			.attr('stroke-width', (8 * currentProfile.pixel_ratio) / 100);
 	}
 
@@ -391,7 +394,7 @@ function DigitisePanel({
 		if (shells.length > 0 && currentProfile) {
 			generateShell();
 		}
-	}, [shells, currentProfile, isEditingShell]); // eslint-disable-line
+	}, [shells, currentProfile, isEditingShell, currentShellId]); // eslint-disable-line
 
 	// GENERATE MOCK HEATPOINTS ======================================/
 
@@ -457,7 +460,7 @@ function DigitisePanel({
 				ref={SVGViewer}
 				width={wrapperSize.width}
 				height={wrapperSize.height}
-				background="#10151b"
+				background="white"
 				SVGBackground="none"
 				detectAutoPan={false}
 				detectWheel={false}
@@ -467,7 +470,7 @@ function DigitisePanel({
 					activeToolColor: '#fbbd08',
 				}}
 				miniatureProps={{
-					background: '#10151b',
+					background: 'none',
 				}}
 				onClick={onSVGClick}
 			>
@@ -502,7 +505,7 @@ DigitisePanel.propTypes = {
 	isShowHeatmaps: PropTypes.bool.isRequired,
 	isShowHeatpoints: PropTypes.bool.isRequired,
 	currentProfile: PropTypes.objectOf(PropTypes.any).isRequired,
-	currentEditingShellId: PropTypes.number.isRequired,
+	currentShellId: PropTypes.number.isRequired,
 	currentShellCoordinates: PropTypes.arrayOf(PropTypes.number).isRequired,
 	setCurrentShellCoordinates: PropTypes.func.isRequired,
 	isAddingShell: PropTypes.bool.isRequired,

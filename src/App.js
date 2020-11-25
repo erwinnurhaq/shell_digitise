@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ca_profile, shells_list } from './constants/data';
-import imageTest from './assets/Test_A2_1-200(3).png';
+import imageTest from './assets/Test1.jpg';
 import getFloorplanObject from './utils/getFloorplanObject';
 import Header from './components/Header';
 import ShellForm from './components/ShellForm';
@@ -18,8 +18,7 @@ function App() {
 		coverage_area: { width: 0, length: 0 },
 	});
 	const [currentShellCoordinates, setCurrentShellCoordinates] = useState([]);
-	const [currentEditingShellId, setCurrentEditingShellId] = useState(0);
-	const [currentDeletingShellId, setCurrentDeletingShellId] = useState(0);
+	const [currentShellId, setCurrentShellId] = useState(0);
 	const [floorplan, setFloorplan] = useState({
 		floorplan_url: '',
 		width: 1,
@@ -34,6 +33,15 @@ function App() {
 	const [isEditingShell, setIsEditingShell] = useState(false);
 	const [isShowDeleteModal, setIsShowDeleteModal] = useState(false);
 	const [isLoading, setIsLoading] = useState(false)
+
+	const shellLocateRef = useRef(null)
+
+	function clearShellLocateTimeout(){
+		if(shellLocateRef.current) {
+			clearTimeout(shellLocateRef.current)
+			shellLocateRef.current = null
+		}
+	}
 
 	function checkShellCoordinatesRotation() {
 		if (currentShellCoordinates[2] < 0) {
@@ -64,9 +72,9 @@ function App() {
 		checkShellCoordinatesRotation();
 		setShells(
 			shells.map((shell) => {
-				if (shell.id === currentEditingShellId) {
+				if (shell.id === currentShellId) {
 					return {
-						id: currentEditingShellId,
+						id: currentShellId,
 						status: 'offline',
 						last_status_update_time: new Date().toISOString(),
 						coordinates: currentShellCoordinates,
@@ -80,19 +88,19 @@ function App() {
 			})
 		);
 		setCurrentShellCoordinates([]);
-		setCurrentEditingShellId(0);
+		setCurrentShellId(0);
 		setIsEditingShell(false);
 	}
 
 	function deleteShell() {
-		setShells(shells.filter((shell) => shell.id !== currentDeletingShellId));
-		setCurrentDeletingShellId(0);
+		setShells(shells.filter((shell) => shell.id !== currentShellId));
+		setCurrentShellId(0);
 		setIsShowDeleteModal(false);
 	}
 
 	function cancelShellForm() {
 		setCurrentShellCoordinates([]);
-		setCurrentEditingShellId(0);
+		setCurrentShellId(0);
 		setIsAddingShell(false);
 		setIsEditingShell(false);
 	}
@@ -104,16 +112,26 @@ function App() {
 	}
 
 	function onDeleteShellButtonClick(id) {
-		setCurrentDeletingShellId(id);
+		clearShellLocateTimeout()
+		setCurrentShellId(id);
 		setIsShowDeleteModal(true);
 	}
 
 	function onEditShellButtonClick(id, coordinates){
-		setCurrentEditingShellId(id);
+		clearShellLocateTimeout()
+		setCurrentShellId(id);
 		setCurrentShellCoordinates(coordinates);
 		setIsEditingShell(true);
 		setIsShowHeatmaps(false);
 		setIsShowHeatpoints(false);
+	}
+
+	function onLocateButtonClick(id) {
+		clearShellLocateTimeout()
+		setCurrentShellId(id)
+		shellLocateRef.current = setTimeout(() => {
+			setCurrentShellId(0)
+		}, 3000)
 	}
 
 	useEffect(() => {
@@ -132,12 +150,12 @@ function App() {
 				<ConfirmModal
 					isShow
 					title={`Are you sure you want to delete ${
-						shells.find((shell) => shell.id === currentDeletingShellId).ts_id
+						shells.find((shell) => shell.id === currentShellId).ts_id
 					}?`}
 					infoPrefix="WARNING"
 					info="This cannot be undone"
 					onCancel={() => {
-						setCurrentDeletingShellId(0);
+						setCurrentShellId(0);
 						setIsShowDeleteModal(false);
 					}}
 					onYes={deleteShell}
@@ -159,7 +177,7 @@ function App() {
 						isShowHeatmaps={isShowHeatmaps}
 						isShowHeatpoints={isShowHeatpoints}
 						currentProfile={currentProfile}
-						currentEditingShellId={currentEditingShellId}
+						currentShellId={currentShellId}
 						currentShellCoordinates={currentShellCoordinates}
 						setCurrentShellCoordinates={setCurrentShellCoordinates}
 						isAddingShell={isAddingShell}
@@ -189,11 +207,12 @@ function App() {
 					)}
 					<ShellTable
 						isLoading={isLoading}
+						isEditingShell={isEditingShell}
 						shells={shells}
 						searchKeyword={searchKeyword}
 						filter={filter}
 						currentProfile={currentProfile}
-						currentEditingShellId={currentEditingShellId}
+						currentShellId={currentShellId}
 						currentShellCoordinates={currentShellCoordinates}
 						setCurrentShellCoordinates={setCurrentShellCoordinates}
 						isButtonDisabled={isAddingShell || isEditingShell}
@@ -201,6 +220,7 @@ function App() {
 						onEditClick={onEditShellButtonClick}
 						onSaveEdit={editShell}
 						onCancelEdit={cancelShellForm}
+						onLocateClick={onLocateButtonClick}
 					/>
 				</div>
 			</div>

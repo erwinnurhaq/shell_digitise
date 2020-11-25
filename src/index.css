@@ -239,6 +239,10 @@ input {
 	margin-top: -5px;
 }
 
+.shell-section__table table tbody tr.shell-row-selected {
+	background-color: #ffc11026;
+}
+
 .shell-section__table table .button {
 	width: 420px;
 	text-align: right;
