@@ -129,6 +129,7 @@ function DigitisePanel({
 		heatmapsRef.current = {};
 		heatmapsRef.current.mainCanvas = select('#heat_canvas');
 		heatmapsRef.current.hiddenCanvas = select('#heat_canvas_hidden');
+		heatmapsRef.current.colorToNode = {}
 		heatmapsRef.current.nextCol = 1;
 		heatmapsRef.current.genColor = function () {
 			const ret = [];
@@ -161,7 +162,57 @@ function DigitisePanel({
 
 		heatmapsRef.current.databind = function (data) {
 			const join = custom.selectAll('custom.rect').data(data);
+			const enterSel = join.enter().append('custom').attr('class', 'rect')
+
+			join.merge(enterSel)
+				.attr('x', ({x}) => x)
+				.attr('y', ({y}) => y)
+				.attr('width', ({width}) => width)
+				.attr('height', ({height}) => height)
+				.attr('fillStyle', ({fill}) => fill)
+				.attr('fillStyleHidden', (d) => {
+					if(!d.hiddenColor) {
+						console.log(this)
+						d.hiddenColor = heatmapsRef.current.genColor()
+						heatmapsRef.current.colorToNode[d.hiddenColor] = d
+					}
+				})
+				.attr('shellX', ({baseCoordinate}) => baseCoordinate[0]* floorplan.width)
+				.attr('shellY', ({baseCoordinate}) => baseCoordinate[1]* floorplan.height)
+				.attr('shellRotate', ({baseCoordinate}) => baseCoordinate[2] * Math.PI /180)
+				.attr(
+					'transform',
+					({ baseCoordinate }) =>
+						`translate(${baseCoordinate[0] * floorplan.width} ${
+							baseCoordinate[1] * floorplan.height
+						}) rotate(${baseCoordinate[2]})`
+				)
+
+			join.exit().remove()
 		};
+
+		heatmapsRef.current.draw = function(canvas, hidden) {
+			// BUILD CONTEXT
+			const context = canvas.node().getContext('2d')
+
+			// CLEAR CANVAS
+			context.clearRect(0,0, floorplan.width, floorplan.height)
+
+			// DRAW EACH INDIVIDUAL CUSTOM ELEMENT WITH THEIR PROPERTIES
+
+			const elements = custom.selectAll('custom.rect')
+
+			elements.each(function(d,i) {
+				const node = select(this)
+				console.log(node, node.attr('shellX'), node.attr('shellY'))
+				context.save()
+				context.translate(node.attr('shellX'), node.attr('shellY'))
+				context.rotate(node.attr('shellRotate'))
+				context.fillStyle = hidden ? node.attr('fillStyleHidden') : node.attr('fillStyle')
+				context.fillRect(node.attr('x'), node.attr('y'), node.attr('width'), node.attr('height'))
+				context.restore()
+			})
+		}
 	}
 
 	function transformHeatmapData(array, xLength, yLength) {
@@ -196,28 +247,31 @@ function DigitisePanel({
 				})
 			}
 		})
-		
-		// JOIN
-		const join = select('#heatmaps_group').selectAll('.heatmaps_rect').data(data)
 
-		// ENTER
-		const enterSel = join.enter().append('rect').attr('class', 'heatmaps_rect')
+		heatmapsRef.current.databind(data)
+		heatmapsRef.current.draw(heatmapsRef.current.mainCanvas, false)
 		
-		join.merge(enterSel)
-		.attr('x', ({x}) => x)
-		.attr('y', ({y}) => y)
-		.attr('width', ({width}) => width)
-		.attr('height', ({height}) => height)
-		.attr('fill', ({fill}) => fill)
-		.attr(
-			'transform',
-			({ baseCoordinate }) =>
-				`translate(${baseCoordinate[0] * floorplan.width} ${
-					baseCoordinate[1] * floorplan.height
-				}) rotate(${baseCoordinate[2]})`
-		)
+		// // JOIN
+		// const join = select('#heatmaps_group').selectAll('.heatmaps_rect').data(data)
 
-		join.exit().remove();
+		// // ENTER
+		// const enterSel = join.enter().append('rect').attr('class', 'heatmaps_rect')
+		
+		// join.merge(enterSel)
+		// .attr('x', ({x}) => x)
+		// .attr('y', ({y}) => y)
+		// .attr('width', ({width}) => width)
+		// .attr('height', ({height}) => height)
+		// .attr('fill', ({fill}) => fill)
+		// .attr(
+		// 	'transform',
+		// 	({ baseCoordinate }) =>
+		// 		`translate(${baseCoordinate[0] * floorplan.width} ${
+		// 			baseCoordinate[1] * floorplan.height
+		// 		}) rotate(${baseCoordinate[2]})`
+		// )
+
+		// join.exit().remove();
 
 	}
 
@@ -387,9 +441,9 @@ function DigitisePanel({
 	function getMockHeatmaps() {
 		clearMockHeatmaps();
 		setHeatmaps(generateMockHeatmaps(shells));
-		mockHeatmapsInterval.current = setInterval(() => {
-			setHeatmaps(generateMockHeatmaps(shells));
-		}, 2000);
+		// mockHeatmapsInterval.current = setInterval(() => {
+		// 	setHeatmaps(generateMockHeatmaps(shells));
+		// }, 2000);
 	}
 
 	// AUTO RESIZE VIEWER ==================================/
