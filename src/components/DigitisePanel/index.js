@@ -211,19 +211,19 @@ function DigitisePanel({
 						coordinates[1] * floorplan.height
 					})`
 			)
-			.on('mouseenter', function (e, { id, ts_id }) {
-				select(this).on('mousemove', moveEvent => {
-					select('#shell-tooltip')
-						.style('opacity', 1)
-						.style('top', `${moveEvent.pageY}px`)
-						.style('left', `${moveEvent.pageX}px`)
-						.html(`<b>Unit</b><br/>${id}/${ts_id}`);
-				})
-			})
-			.on('mouseleave', function () {
-				select('#shell-tooltip').style('opacity', 0);
-				select(this).on('mousemove', null);
-			});
+			// .on('mouseenter', function (e, { id, ts_id }) {
+			// 	select(this).on('mousemove', moveEvent => {
+			// 		select('#shell-tooltip')
+			// 			.style('opacity', 1)
+			// 			.style('top', `${moveEvent.pageY}px`)
+			// 			.style('left', `${moveEvent.pageX}px`)
+			// 			.html(`<b>Unit</b><br/>${id}/${ts_id}`);
+			// 	})
+			// })
+			// .on('mouseleave', function () {
+			// 	select('#shell-tooltip').style('opacity', 0);
+			// 	select(this).on('mousemove', null);
+			// });
 
 		shellGroups
 			.merge(shellGroupsEnter)
