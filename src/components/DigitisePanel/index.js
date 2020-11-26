@@ -177,12 +177,12 @@ function DigitisePanel({
 	}
 
 	function drawHeatmaps() {
-		removeDrawHeatmaps() // CLEAR CANVAS
+		removeDrawHeatmaps(); // CLEAR CANVAS
 		heatmaps.forEach((heatmap) => {
 			const currentShell = shells.find((shell) => shell.id === heatmap.shell_id);
 			if (currentShell) {
 				const heatdata = transformHeatmapData(heatmap.heatmaps, 32, 24);
-				heatmapsRef.current.draw(heatdata, currentShell)
+				heatmapsRef.current.draw(heatdata, currentShell);
 			}
 		});
 	}
@@ -210,7 +210,20 @@ function DigitisePanel({
 					`rotate(${coordinates[2]} ${coordinates[0] * floorplan.width} ${
 						coordinates[1] * floorplan.height
 					})`
-			);
+			)
+			.on('mouseenter', function (e, { id, ts_id }) {
+				select(this).on('mousemove', moveEvent => {
+					select('#shell-tooltip')
+						.style('opacity', 1)
+						.style('top', `${moveEvent.pageY}px`)
+						.style('left', `${moveEvent.pageX}px`)
+						.html(`<b>Unit</b><br/>${id}/${ts_id}`);
+				})
+			})
+			.on('mouseleave', function () {
+				select('#shell-tooltip').style('opacity', 0);
+				select(this).on('mousemove', null);
+			});
 
 		shellGroups
 			.merge(shellGroupsEnter)
@@ -224,8 +237,7 @@ function DigitisePanel({
 			.attr(
 				'stroke-width',
 				({ id }) => ((id === currentShellId ? 24 : 8) * currentProfile.pixel_ratio) / 100
-			)
-			.attr('data-tip', ({ id }) => `shell_rect_${id}`);
+			);
 
 		shellGroups
 			.merge(shellGroupsEnter)
@@ -454,55 +466,52 @@ function DigitisePanel({
 	}, [isShowHeatmaps, shells, heatmaps]); // eslint-disable-line
 
 	return (
-		<div className="digitise-panel" ref={SVGPanel}>
-			<UncontrolledReactSVGPanZoom
-				ref={SVGViewer}
-				width={wrapperSize.width}
-				height={wrapperSize.height}
-				background="white"
-				SVGBackground="none"
-				detectAutoPan={false}
-				detectWheel={false}
-				toolbarProps={{
-					SVGAlignX: 'center',
-					SVGAlignY: 'center',
-					activeToolColor: '#fbbd08',
-				}}
-				miniatureProps={{
-					background: 'none',
-				}}
-				onClick={onSVGClick}
-			>
-				<svg
-					width={floorplan.width}
-					height={floorplan.height}
-					xmlns="http://www.w3.org/2000/svg"
-					xmlnsXlink="http://www.w3.org/1999/xlink"
+		<React.Fragment>
+			<div id="shell-tooltip" />
+			<div className="digitise-panel" ref={SVGPanel}>
+				<UncontrolledReactSVGPanZoom
+					ref={SVGViewer}
+					width={wrapperSize.width}
+					height={wrapperSize.height}
+					background="white"
+					SVGBackground="none"
+					detectAutoPan={false}
+					detectWheel={false}
+					toolbarProps={{
+						SVGAlignX: 'center',
+						SVGAlignY: 'center',
+						activeToolColor: '#fbbd08',
+					}}
+					miniatureProps={{
+						background: 'none',
+					}}
+					onClick={onSVGClick}
 				>
-					<image
-						onLoad={() => SVGViewer.current.fitToViewer('center', 'center')}
+					<svg
 						width={floorplan.width}
 						height={floorplan.height}
-						xlinkHref={floorplan.floorplan_url}
-					/>
-					<rect
-						x="0"
-						y="0"
-						width="100"
-						height="100"
-						transform="translate(3399.2 1968.3999999999999) rotate(0 3399.2 1968.3999999999999)"
-					/>
-					<foreignObject width={floorplan.width} height={floorplan.height}>
-						<canvas id="heat_canvas" width={floorplan.width} height={floorplan.height} />
-						<canvas id="heat_canvas_hidden" width={floorplan.width} height={floorplan.height} />
-					</foreignObject>
-					<g id="heatmaps_group" />
-					<g id="shells_surrounding_group" />
-					<g id="shells_group" />
-					<g id="add_shells_group" />
-				</svg>
-			</UncontrolledReactSVGPanZoom>
-		</div>
+						xmlns="http://www.w3.org/2000/svg"
+						xmlnsXlink="http://www.w3.org/1999/xlink"
+					>
+						<image
+							onLoad={() => SVGViewer.current.fitToViewer('center', 'center')}
+							width={floorplan.width}
+							height={floorplan.height}
+							xlinkHref={floorplan.floorplan_url}
+						/>
+
+						<foreignObject width={floorplan.width} height={floorplan.height}>
+							<canvas id="heat_canvas" width={floorplan.width} height={floorplan.height} />
+							<canvas id="heat_canvas_hidden" width={floorplan.width} height={floorplan.height} />
+						</foreignObject>
+						<g id="heatmaps_group" />
+						<g id="shells_surrounding_group" />
+						<g id="shells_group" />
+						<g id="add_shells_group" />
+					</svg>
+				</UncontrolledReactSVGPanZoom>
+			</div>
+		</React.Fragment>
 	);
 }
 
