@@ -5,7 +5,7 @@ const ca_profile = {
 	coverage_area: { width: 6, length: 8.4 },
 };
 
-const shells_list = new Array(40).fill({}).map((item, idx) => ({
+const shells_list = new Array(50).fill({}).map((item, idx) => ({
 	id: idx + 1,
 	status: 'offline',
 	last_status_update_time: '2020-10-16T18:54:09.729Z',
